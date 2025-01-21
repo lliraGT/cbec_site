@@ -2,73 +2,73 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { client } from '@/lib/sanity';
 
-export default NextAuth({
+// Add this line to specify the runtime
+export const runtime = 'edge';
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Missing credentials');
+        }
+
         try {
-          // Add console.log to debug the query
-          console.log('Querying user with email:', credentials.email);
-          
           const user = await client.fetch(
-            `*[_type == "user" && email == $email][0]{
-              _id,
-              name,
-              email,
-              password,
-              role
-            }`,
+            `*[_type == "user" && email == $email][0]`,
             { email: credentials.email }
           );
 
-          console.log('Found user:', user); // Debug log
+          if (!user) {
+            throw new Error('No user found');
+          }
 
-          if (user && credentials.password === user.password) {
-            // Return user with role explicitly
+          // Important: In production, you should use proper password hashing
+          if (credentials.password === user.password) {
             return {
               id: user._id,
               name: user.name,
               email: user.email,
-              role: user.role // Make sure role is included
+              role: user.role
             };
           }
-          return null;
+          throw new Error('Invalid credentials');
         } catch (error) {
           console.error('Auth error:', error);
-          return null;
+          throw new Error(error.message ?? 'Authentication error');
         }
       }
-    })
+    }),
   ],
+  pages: {
+    signIn: '/auth/login',
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
     async jwt({ token, user }) {
-      // Add debugging logs
-      console.log('JWT Callback - User:', user);
-      console.log('JWT Callback - Current Token:', token);
-      
       if (user) {
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      // Add debugging logs
-      console.log('Session Callback - Token:', token);
-      console.log('Session Callback - Current Session:', session);
-      
-      if (session?.user) {
+      if (token) {
         session.user.role = token.role;
       }
       return session;
     }
   },
-  debug: true, // Enable debug mode
-  pages: {
-    signIn: '/auth/login',
-  }
-});
+  debug: process.env.NODE_ENV === 'development',
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
