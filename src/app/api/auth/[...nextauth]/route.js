@@ -2,7 +2,6 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { client } from '@/lib/sanity';
 
-// Add this line to specify the runtime
 export const runtime = 'edge';
 
 export const authOptions = {
@@ -13,9 +12,9 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials');
+          return null;
         }
 
         try {
@@ -25,10 +24,9 @@ export const authOptions = {
           );
 
           if (!user) {
-            throw new Error('No user found');
+            return null;
           }
 
-          // Important: In production, you should use proper password hashing
           if (credentials.password === user.password) {
             return {
               id: user._id,
@@ -37,10 +35,10 @@ export const authOptions = {
               role: user.role
             };
           }
-          throw new Error('Invalid credentials');
+          return null;
         } catch (error) {
           console.error('Auth error:', error);
-          throw new Error(error.message ?? 'Authentication error');
+          return null;
         }
       }
     }),
@@ -53,20 +51,19 @@ export const authOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
     async session({ session, token }) {
       if (token) {
         session.user.role = token.role;
       }
       return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
     }
   },
-  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
 };
 
