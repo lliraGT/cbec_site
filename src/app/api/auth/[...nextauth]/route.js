@@ -1,11 +1,13 @@
-import NextAuth from 'next-auth';  // Change back to standard import
+import NextAuth from 'next-auth/next';  // Use the Edge-compatible version
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { client } from '@/lib/sanity';
 
-// Change to Node.js runtime
-export const runtime = 'nodejs';
+// Keep Edge runtime
+export const runtime = 'edge';
 
-export const authOptions = {
+// Define Auth config
+const authConfig = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -14,26 +16,29 @@ export const authOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
         try {
-          const user = await client.fetch(
-            `*[_type == "user" && email == $email][0]`,
-            { email: credentials.email }
-          );
+          // Use fetch instead of direct Sanity client for Edge compatibility
+          const res = await fetch(`https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v1/data/query/production?query=*[_type == "user" && email == $email][0]`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.SANITY_API_TOKEN}`
+            },
+            body: JSON.stringify({
+              email: credentials?.email
+            })
+          });
 
-          if (!user) {
+          const user = await res.json();
+
+          if (!user.result) {
             return null;
           }
 
-          if (credentials.password === user.password) {
+          if (credentials?.password === user.result.password) {
             return {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role
+              id: user.result._id,
+              name: user.result.name,
+              email: user.result.email,
+              role: user.result.role
             };
           }
           return null;
@@ -64,9 +69,8 @@ export const authOptions = {
       }
       return token;
     }
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+  }
 };
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authConfig);
 export { handler as GET, handler as POST };

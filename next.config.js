@@ -2,11 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    workerThreads: false,
-    cpus: 1,
-    serverComponentsExternalPackages: ['next-auth']
+    runtime: 'edge',
+    serverActions: true,
   },
-  // Remove the webpack config that we added before as it's not needed anymore
 };
 
 module.exports = nextConfig;
