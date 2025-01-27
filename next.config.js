@@ -3,7 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     workerThreads: false,
-    cpus: 1
+    cpus: 1,
+    serverComponentsExternalPackages: ['next-auth'] // Added this line
   },
 };
 
