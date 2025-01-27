@@ -1,13 +1,19 @@
-import NextAuth from 'next-auth/next';  // Use the Edge-compatible version
+import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { client } from '@/lib/sanity';
+import { createClient } from '@sanity/client';
 
-// Keep Edge runtime
-export const runtime = 'edge';
+// Explicitly set runtime to nodejs
+export const runtime = 'nodejs';
 
-// Define Auth config
-const authConfig = {
-  secret: process.env.NEXTAUTH_SECRET,
+const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  token: process.env.SANITY_API_TOKEN,
+  useCdn: false,
+  apiVersion: '2023-05-03',
+});
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -16,29 +22,26 @@ const authConfig = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
         try {
-          // Use fetch instead of direct Sanity client for Edge compatibility
-          const res = await fetch(`https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v1/data/query/production?query=*[_type == "user" && email == $email][0]`, {
-            headers: {
-              'Authorization': `Bearer ${process.env.SANITY_API_TOKEN}`
-            },
-            body: JSON.stringify({
-              email: credentials?.email
-            })
-          });
+          const user = await client.fetch(
+            `*[_type == "user" && email == $email][0]`,
+            { email: credentials.email }
+          );
 
-          const user = await res.json();
-
-          if (!user.result) {
+          if (!user) {
             return null;
           }
 
-          if (credentials?.password === user.result.password) {
+          if (credentials.password === user.password) {
             return {
-              id: user.result._id,
-              name: user.result.name,
-              email: user.result.email,
-              role: user.result.role
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role
             };
           }
           return null;
@@ -72,5 +75,5 @@ const authConfig = {
   }
 };
 
-const handler = NextAuth(authConfig);
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

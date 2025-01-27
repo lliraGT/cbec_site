@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   experimental: {
-    runtime: 'edge',
-    serverActions: true,
+    serverComponentsExternalPackages: ['next-auth']
   },
+  images: {
+    domains: ['cdn.sanity.io']
+  }
 };
 
 module.exports = nextConfig;
