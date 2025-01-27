@@ -1,14 +1,9 @@
-import NextAuth from 'next-auth/next';  // Changed to edge-compatible import
+import NextAuth from 'next-auth';  // Change back to standard import
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { client } from '@/lib/sanity';
 
-export const runtime = 'edge';  // Keep edge runtime
-
-// Add middleware config to specify edge
-export const config = {
-  runtime: 'edge',
-  regions: ['iad1'], // Optional: specify deployment regions
-};
+// Change to Node.js runtime
+export const runtime = 'nodejs';
 
 export const authOptions = {
   providers: [

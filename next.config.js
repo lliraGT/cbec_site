@@ -4,17 +4,9 @@ const nextConfig = {
   experimental: {
     workerThreads: false,
     cpus: 1,
-    serverComponentsExternalPackages: ['next-auth'],
+    serverComponentsExternalPackages: ['next-auth']
   },
-  webpack: (config, { isServer, webpack }) => {
-    if (isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        crypto: false,
-      };
-    }
-    return config;
-  },
+  // Remove the webpack config that we added before as it's not needed anymore
 };
 
 module.exports = nextConfig;
