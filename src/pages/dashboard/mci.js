@@ -1,19 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import TopBar from '@/components/TopBar';
 import Sidebar from '@/components/Sidebar';
+import MCITrackingSystem from '@/components/MCITrackingSystem';
 
-export default function Dashboard() {
+export default function MCIPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Define authorized roles
+  const MCI_AUTHORIZED_ROLES = ['admin', 'elder', 'staff'];
+
+  useEffect(() => {
+    // Redirect unauthorized users
+    if (status !== 'loading' && (!session?.user?.role || 
+        !MCI_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase()))) {
+      router.push('/dashboard');
+    }
+  }, [session, status, router]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Show loading state while session is being fetched
+  // Show loading state while checking authorization
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -25,9 +37,8 @@ export default function Dashboard() {
     );
   }
 
-  // Redirect if not authenticated
-  if (!session) {
-    router.push('/auth/login');
+  // If not authenticated or unauthorized, don't render anything (redirect will handle it)
+  if (!session || !MCI_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase())) {
     return null;
   }
   
@@ -39,17 +50,8 @@ export default function Dashboard() {
       <main className={`pt-16 min-h-screen ${sidebarOpen ? 'ml-64' : ''} transition-margin duration-300`}>
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl font-semibold text-gray-900">Welcome, {session.user.name}!</h1>
-            
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Dashboard content */}
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <h3 className="text-lg font-medium text-gray-900">Quick Stats</h3>
-                  {/* Add your dashboard content here */}
-                </div>
-              </div>
-            </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">MCI Tracking System</h1>
+            <MCITrackingSystem />
           </div>
         </div>
       </main>

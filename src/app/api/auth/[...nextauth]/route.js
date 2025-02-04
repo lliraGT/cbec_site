@@ -62,12 +62,14 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       if (token) {
+        session.user.id = token.sub;  // Make sure ID is passed to session
         session.user.role = token.role;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
+        token.sub = user.id;  // Store ID in the token
         token.role = user.role;
       }
       return token;

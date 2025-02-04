@@ -1,247 +1,270 @@
-import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { useState } from 'react';
+import { Check, X } from 'lucide-react';
 
 const MCITrackingSystem = () => {
-  const { data: session } = useSession();
-  const [activeWeek, setActiveWeek] = useState(1);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [tasks, setTasks] = useState({ meta1: [], meta2: [] });
-  const [progressData, setProgressData] = useState({});
-  const [activeTab, setActiveTab] = useState('meta1');
-  const [loading, setLoading] = useState(true);
-
-  // Get current date info
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentYear = currentDate.getFullYear();
-
-  // Fetch users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/mci/users');
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-    fetchUsers();
-  }, []);
-
-  // Fetch tasks
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const [meta1Response, meta2Response] = await Promise.all([
-          fetch('/api/mci/tasks?meta=meta1'),
-          fetch('/api/mci/tasks?meta=meta2')
-        ]);
-        const meta1Data = await meta1Response.json();
-        const meta2Data = await meta2Response.json();
-        
-        setTasks({
-          meta1: meta1Data,
-          meta2: meta2Data
-        });
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-      }
-    };
-    fetchTasks();
-  }, []);
-
-  // Fetch progress data when user or week changes
-  useEffect(() => {
-    const fetchProgress = async () => {
-      if (!selectedUser) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `/api/mci?userId=${selectedUser}&week=${activeWeek}&month=${currentMonth}&year=${currentYear}`
-        );
-        const data = await response.json();
-        
-        if (data.length > 0) {
-          setProgressData(data[0].taskProgress || {});
-        } else {
-          setProgressData({});
-        }
-      } catch (error) {
-        console.error('Error fetching progress:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProgress();
-  }, [selectedUser, activeWeek, currentMonth, currentYear]);
-
-  const handleProgressUpdate = async (taskId, newValue) => {
-    if (!selectedUser) return;
-
-    try {
-      const updatedProgress = {
-        ...progressData,
-        [taskId]: {
-          progress: newValue,
-          updatedAt: new Date().toISOString(),
-          completed: newValue === 100
-        }
-      };
-
-      const response = await fetch('/api/mci', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
+  const [activeTab, setActiveTab] = useState('scoreboard');
+  const [commitments, setCommitments] = useState({});
+  
+  const goals = [
+    {
+      id: 1,
+      title: "ENFOCARNOS EN PERSONAS Y NO SOLAMENTE EN LAS ACTIVIDADES",
+      leadMeasures: [
+        {
+          id: "1.1",
+          title: "Predicando y enseñando la palabra de Dios",
+          tasks: [
+            { id: "1.1.1", description: "Compartir al menos una reflexión bíblica semanal" }
+          ]
         },
-        body: JSON.stringify({
-          userId: selectedUser,
-          week: activeWeek,
-          month: currentMonth,
-          year: currentYear,
-          taskProgress: updatedProgress
-        }),
-      });
+        {
+          id: "1.2",
+          title: "Comunicarse con otros",
+          tasks: [
+            { id: "1.2.1", description: "Realizar al menos un contacto intencional de comunicación a la semana" }
+          ]
+        },
+        {
+          id: "1.3",
+          title: "Orar por y con otros",
+          tasks: [
+            { id: "1.3.1", description: "Realizar al menos una oración semanal" }
+          ]
+        },
+        {
+          id: "1.4",
+          title: "Ofrecer corrección y disciplina con amor",
+          tasks: [
+            { id: "1.4.1", description: "Realizar un informe semanal comunicando acciones que requieren corrección" },
+            { id: "1.4.2", description: "Ejecutar semanalmente acciones de corrección para el 100% de casos" }
+          ]
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: "PROMOVER CULTURA DONDE EL SERVICIO ES UNA FORMA DE VIDA",
+      leadMeasures: [
+        {
+          id: "2.1",
+          title: "Ofrecer apoyo material",
+          tasks: [
+            { id: "2.1.1", description: "Realizar un informe semanal comunicando necesidades detectadas" },
+            { id: "2.1.2", description: "Cubrir semanalmente el 100% de las necesidades reportadas" }
+          ]
+        },
+        {
+          id: "2.2",
+          title: "Fomentar la unidad y el amor en la comunidad",
+          tasks: [
+            { id: "2.2.1", description: "Realizar al menos una convivencia cada seis meses" }
+          ]
+        }
+      ]
+    }
+  ];
 
-      if (response.ok) {
-        setProgressData(updatedProgress);
+  const teamMembers = [
+    "Pastor Juan",
+    "Diacono Pedro",
+    "Ministro María",
+    "Líder Ana",
+    "Coordinador Carlos",
+    "Servidor David",
+    "Maestra Ruth",
+    "Asistente Sara",
+    "Voluntario José",
+    "Consejero Daniel"
+  ];
+
+  function getCurrentWeek() {
+    const now = new Date();
+    // Adjust to previous Tuesday if not Tuesday
+    const currentDay = now.getDay();
+    const daysToTuesday = (currentDay >= 2) ? currentDay - 2 : currentDay + 5;
+    const tuesday = new Date(now);
+    tuesday.setDate(now.getDate() - daysToTuesday);
+    
+    // Calculate the week number starting from the first Tuesday of the year
+    const firstDayOfYear = new Date(tuesday.getFullYear(), 0, 1);
+    const firstTuesday = new Date(firstDayOfYear);
+    firstTuesday.setDate(firstDayOfYear.getDate() + (2 - firstDayOfYear.getDay() + 7) % 7);
+    
+    const diffInTime = tuesday.getTime() - firstTuesday.getTime();
+    const diffInDays = Math.floor(diffInTime / (1000 * 3600 * 24));
+    const weekNumber = Math.floor(diffInDays / 7) + 1;
+    
+    return `${tuesday.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+  }
+
+  function getWeekDates(weekStr) {
+    const [year, week] = weekStr.split('-W').map(Number);
+    
+    // Find first Tuesday of the year
+    const firstDayOfYear = new Date(year, 0, 1);
+    const firstTuesday = new Date(firstDayOfYear);
+    firstTuesday.setDate(firstDayOfYear.getDate() + (2 - firstDayOfYear.getDay() + 7) % 7);
+    
+    // Calculate start of selected week (Tuesday)
+    const startDate = new Date(firstTuesday);
+    startDate.setDate(firstTuesday.getDate() + (week - 1) * 7);
+    
+    // Calculate end date (Monday)
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    
+    return {
+      start: startDate.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
+      end: endDate.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+    };
+  }
+
+  function handleCommitmentToggle(memberId, taskId, completed) {
+    setCommitments(prev => ({
+      ...prev,
+      [selectedWeek]: {
+        ...prev[selectedWeek],
+        [memberId]: {
+          ...prev[selectedWeek]?.[memberId],
+          [taskId]: completed
+        }
       }
-    } catch (error) {
-      console.error('Error updating progress:', error);
-    }
-  };
+    }));
+  }
 
-  // Group tasks by measure
-  const groupedTasks = tasks[activeTab].reduce((acc, task) => {
-    if (!acc[task.measure]) {
-      acc[task.measure] = [];
-    }
-    acc[task.measure].push(task);
-    return acc;
-  }, {});
+  function calculateProgress(memberId) {
+    if (!commitments[selectedWeek]?.[memberId]) return 0;
+    const memberCommitments = commitments[selectedWeek][memberId];
+    const totalTasks = getAllTaskIds().length;
+    const completedTasks = Object.values(memberCommitments).filter(v => v).length;
+    return Math.round((completedTasks / totalTasks) * 100);
+  }
 
-  if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading...</div>;
+  function getAllTaskIds() {
+    return goals.flatMap(goal =>
+      goal.leadMeasures.flatMap(measure =>
+        measure.tasks.map(task => task.id)
+      )
+    );
   }
 
   return (
-    <div className="space-y-6 bg-white rounded-lg p-6 shadow">
-      <div className="border-b pb-4">
-        <h2 className="text-2xl font-bold">MCI Tracking System</h2>
-        <p className="text-gray-600">Week {activeWeek} - {currentMonth}/{currentYear}</p>
-      </div>
-
-      <div className="mb-4 flex space-x-2">
-        {[1, 2, 3, 4].map(week => (
-          <button
-            key={week}
-            className={`px-4 py-2 rounded ${
-              activeWeek === week 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-            onClick={() => setActiveWeek(week)}
-          >
-            Week {week}
-          </button>
-        ))}
-      </div>
-
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="mb-6">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800">MCI Tracking System</h2>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="week"
+              value={selectedWeek}
+              onChange={(e) => setSelectedWeek(e.target.value)}
+              className="w-40 px-3 py-2 border rounded-md bg-white text-gray-800 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+            {selectedWeek && (
+              <span className="text-gray-600 text-sm">
+                ({getWeekDates(selectedWeek).start} - {getWeekDates(selectedWeek).end})
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-4">
         <div className="flex border-b">
           <button
-            className={`px-6 py-2 ${activeTab === 'meta1' ? 'border-b-2 border-blue-600' : ''}`}
-            onClick={() => setActiveTab('meta1')}
+            className={`px-4 py-2 font-medium ${activeTab === 'scoreboard' ? 'border-b-2 border-blue-600 text-blue-700' : 'text-gray-700 hover:text-gray-900'}`}
+            onClick={() => setActiveTab('scoreboard')}
           >
-            Meta 1
+            Scoreboard
           </button>
           <button
-            className={`px-6 py-2 ${activeTab === 'meta2' ? 'border-b-2 border-blue-600' : ''}`}
-            onClick={() => setActiveTab('meta2')}
+            className={`px-4 py-2 ${activeTab === 'details' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+            onClick={() => setActiveTab('details')}
           >
-            Meta 2
+            Detailed View
           </button>
         </div>
+      </div>
 
-        <div className="mt-6">
-          {Object.entries(groupedTasks).map(([measure, measureTasks]) => (
-            <div key={measure} className="mb-8 bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-4">{measure}</h4>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 text-left">Task</th>
-                      <th className="px-4 py-2 text-left">Target</th>
-                      <th className="px-4 py-2 text-left">Progress</th>
-                      <th className="px-4 py-2 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {measureTasks.map((task) => (
-                      <tr key={task.taskId} className="border-t">
-                        <td className="px-4 py-2">{task.name}</td>
-                        <td className="px-4 py-2">{task.target} {task.unit}</td>
-                        <td className="px-4 py-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                              className="bg-blue-600 h-2.5 rounded-full" 
-                              style={{ 
-                                width: `${progressData[task.taskId]?.progress || 0}%` 
-                              }}
-                            ></div>
-                          </div>
-                          <span className="text-sm text-gray-500 mt-1">
-                            {progressData[task.taskId]?.progress || 0}%
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">
+      {activeTab === 'scoreboard' && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Team Member</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Progress</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Status</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {teamMembers.map(member => {
+                const progress = calculateProgress(member);
+                return (
+                  <tr key={member}>
+                    <td className="px-6 py-4 text-sm text-gray-900">{member}</td>
+                    <td className="px-6 py-4">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600 mt-1">{progress}%</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {progress === 100 ? (
+                        <span className="text-green-600">Completed</span>
+                      ) : (
+                        <span className="text-yellow-600">In Progress</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'details' && (
+        <div className="space-y-6">
+          {teamMembers.map(member => (
+            <div key={member} className="bg-white rounded-lg border p-6">
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">{member}</h3>
+              {goals.map(goal => (
+                <div key={goal.id} className="mb-6">
+                  <h4 className="text-lg font-semibold mb-4 text-gray-800">{goal.title}</h4>
+                  {goal.leadMeasures.map(measure => (
+                    <div key={measure.id} className="ml-4 mb-4">
+                      <h5 className="font-medium mb-2 text-gray-700">{measure.title}</h5>
+                      {measure.tasks.map(task => (
+                        <div key={task.id} className="ml-4 flex items-center gap-2 mb-2">
                           <button
-                            className={`px-3 py-1 rounded ${
-                              selectedUser 
-                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                                : 'bg-gray-300 cursor-not-allowed'
-                            }`}
-                            onClick={() => handleProgressUpdate(
-                              task.taskId,
-                              Math.min(100, (progressData[task.taskId]?.progress || 0) + 20)
+                            className="p-1 hover:bg-gray-100 rounded-full"
+                            onClick={() => handleCommitmentToggle(
+                              member,
+                              task.id,
+                              !commitments[selectedWeek]?.[member]?.[task.id]
                             )}
-                            disabled={!selectedUser}
                           >
-                            Update
+                            {commitments[selectedWeek]?.[member]?.[task.id] ? (
+                              <Check className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <X className="h-5 w-5 text-gray-400" />
+                            )}
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <span className="text-sm text-gray-700">{task.description}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="mt-6 border-t pt-4">
-        <h3 className="font-bold mb-4">Select User</h3>
-        <div className="flex flex-wrap gap-2">
-          {users.map(user => (
-            <button
-              key={user._id}
-              className={`px-4 py-2 rounded ${
-                selectedUser === user._id 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-              onClick={() => setSelectedUser(user._id)}
-            >
-              {user.name}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 };

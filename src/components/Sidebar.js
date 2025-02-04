@@ -1,16 +1,31 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 export default function Sidebar({ isOpen }) {
   const router = useRouter();
+  const { data: session } = useSession();
 
-  const menuItems = [
-    { title: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { title: 'Members', path: '/members', icon: '👥' },
-    { title: 'Events', path: '/events', icon: '📅' },
-    { title: 'Settings', path: '/settings', icon: '⚙️' },
+  // Define authorized roles for MCI access
+  const MCI_AUTHORIZED_ROLES = ['admin', 'elder', 'staff'];
+
+  // Check if user has permission to see MCI
+  const canAccessMCI = session?.user?.role && MCI_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
+
+  // Base menu items that everyone can see
+  const baseMenuItems = [
+    { title: 'Home', path: '/dashboard', icon: '🏠' },
+    { title: 'Dones', path: '/dashboard/dones', icon: '✅' },
   ];
+
+  // MCI menu item only for authorized roles
+  const mciMenuItem = { title: 'MCI', path: '/dashboard/mci', icon: '📈' };
+
+  // Combine menu items based on permissions
+  const menuItems = canAccessMCI 
+    ? [...baseMenuItems.slice(0, 1), mciMenuItem, ...baseMenuItems.slice(1)]
+    : baseMenuItems;
 
   return (
     <>

@@ -9,11 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@sanity/client": "^6.27.2",
+    "dotenv": "^16.4.7",
+    "fs": "^0.0.1-security",
+    "html2pdf.js": "^0.10.2",
+    "lucide-react": "^0.474.0",
+    "net": "^1.0.2",
     "next": "15.1.4",
     "next-auth": "^4.24.11",
     "next-sanity": "^9.8.37",
+    "nodemailer": "^6.10.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
