@@ -7,12 +7,21 @@ import TopBar from '@/components/TopBar';
 import Sidebar from '@/components/Sidebar';
 import PersonalityTest from '@/components/PersonalityTest';
 import PersonalityResults from '@/components/test/results/PersonalityResults';
+import DonesTest from '@/components/DonesTest';
+import DonesResults from '@/components/test/results/DonesResults';
+import SkillsTest from '@/components/SkillsTest';
+import SkillsResults from '@/components/test/results/SkillsResults';
+import PassionTest from '@/components/PassionTest';
+import PassionResults from '@/components/test/results/PassionResults';
 import EmailInvite from '@/components/EmailInvite';
 import DonesTestList from '@/components/DonesTestList';
 
 export default function DonesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isTestOpen, setIsTestOpen] = useState(false);
+  const [isDonesTestOpen, setIsDonesTestOpen] = useState(false);
+  const [isSkillsTestOpen, setIsSkillsTestOpen] = useState(false);
+  const [isPassionTestOpen, setIsPassionTestOpen] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
@@ -30,7 +39,7 @@ export default function DonesPage() {
 
     const opt = {
       margin: 1,
-      filename: 'resultados-disc.pdf',
+      filename: 'resultados.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 2,
@@ -73,13 +82,15 @@ export default function DonesPage() {
           slug: 'dones',
           name: 'Test de Dones',
           status: data.donesTestCompleted ? 'completado' : 'pendiente',
-          completionDate: data.donesTestCompletionDate
+          completionDate: data.donesTestCompletionDate,
+          results: data.donesTestResults
         },
         {
           slug: 'habilidades',
           name: 'Test de Habilidades',
           status: data.skillsTestCompleted ? 'completado' : 'pendiente',
-          completionDate: data.skillsTestCompletionDate
+          completionDate: data.skillsTestCompletionDate,
+          results: data.skillsTestResults
         },
         {
           slug: 'experiencia',
@@ -91,7 +102,8 @@ export default function DonesPage() {
           slug: 'pasion',
           name: 'Test de Pasión',
           status: data.passionTestCompleted ? 'completado' : 'pendiente',
-          completionDate: data.passionTestCompletionDate
+          completionDate: data.passionTestCompletionDate,
+          results: data.passionTestResults
         }
       ];
 
@@ -111,7 +123,9 @@ export default function DonesPage() {
   }, [session]);
 
   const handleStartTest = (testSlug) => {
+    console.log('handleStartTest called with:', testSlug);
     const test = userTests.find(t => t.slug === testSlug);
+    console.log('Found test:', test);
     
     if (test.status === 'completado') {
       // If test is completed, show results
@@ -121,13 +135,32 @@ export default function DonesPage() {
     } else {
       // If test is pending, start the test
       setCurrentTest(testSlug);
-      setIsTestOpen(true);
+      if (testSlug === 'dones') {
+        setIsDonesTestOpen(true);
+      } else if (testSlug === 'personalidad') {
+        setIsTestOpen(true);
+      } else if (testSlug === 'habilidades') {
+        setIsSkillsTestOpen(true);
+      } else if (testSlug === 'pasion') {
+        console.log('Setting passion test to open');
+        setIsPassionTestOpen(true);
+      }
+      console.log('Current test state:', {
+        isTestOpen,
+        isDonesTestOpen,
+        isSkillsTestOpen,
+        isPassionTestOpen,
+        currentTest
+      });
     }
   };
 
   const handleTestComplete = async () => {
     await fetchUserProgress();
     setIsTestOpen(false);
+    setIsDonesTestOpen(false);
+    setIsSkillsTestOpen(false);
+    setIsPassionTestOpen(false);
     setCurrentTest(null);
   };
 
@@ -171,6 +204,7 @@ export default function DonesPage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold text-gray-900">Descubre</h1>
+              <p className="text-sm text-gray-600 mt-1">Tomado del Libro: "Descubre el llamado que el Señor te ha dado" Por Jay McSwain</p>
               <button
                 onClick={() => setIsInviteModalOpen(true)}
                 className="px-4 py-2 bg-[#8B2332] text-white rounded-md hover:bg-[#7a1e2b] transition-colors"
@@ -184,6 +218,7 @@ export default function DonesPage() {
               onStartTest={handleStartTest}
             />
 
+            {/* Personality Test Modal */}
             {isTestOpen && currentTest === 'personalidad' && (
               <PersonalityTest
                 isOpen={isTestOpen}
@@ -198,7 +233,56 @@ export default function DonesPage() {
               />
             )}
 
-            {isResultsOpen && currentTest === 'personalidad' && (
+            {/* Dones Test Modal */}
+            {isDonesTestOpen && currentTest === 'dones' && (
+              <DonesTest
+                isOpen={isDonesTestOpen}
+                onClose={() => {
+                  setIsDonesTestOpen(false);
+                  setCurrentTest(null);
+                }}
+                onComplete={handleTestComplete}
+                user={{
+                  id: session?.user?.id
+                }}
+              />
+            )}
+
+            {/* Skills Test Modal */}
+            {isSkillsTestOpen && currentTest === 'habilidades' && (
+              <SkillsTest
+                isOpen={isSkillsTestOpen}
+                onClose={() => {
+                  setIsSkillsTestOpen(false);
+                  setCurrentTest(null);
+                }}
+                onComplete={handleTestComplete}
+                user={{
+                  id: session?.user?.id
+                }}
+              />
+            )}
+
+            {/* Passion Test Modal */}
+            {isPassionTestOpen && currentTest === 'pasion' && (
+              <div className="fixed inset-0 z-50">
+                <PassionTest
+                  isOpen={true}
+                  onClose={() => {
+                    console.log('Closing passion test');
+                    setIsPassionTestOpen(false);
+                    setCurrentTest(null);
+                  }}
+                  onComplete={handleTestComplete}
+                  user={{
+                    id: session?.user?.id
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Results Modals */}
+            {isResultsOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
                 <div className="min-h-screen px-4 text-center">
                   <span
@@ -211,7 +295,10 @@ export default function DonesPage() {
                     <div className="bg-white rounded-lg shadow-xl">
                       <div className="sticky top-0 flex justify-between items-center p-4 border-b bg-white rounded-t-lg">
                         <h2 className="text-xl font-semibold text-[#8B2332]">
-                          Resultados del Test de Personalidad
+                          {currentTest === 'personalidad' && 'Resultados del Test de Personalidad'}
+                          {currentTest === 'dones' && 'Resultados del Test de Dones Espirituales'}
+                          {currentTest === 'habilidades' && 'Resultados del Test de Habilidades'}
+                          {currentTest === 'pasion' && 'Resultados del Test de Pasión'}
                         </h2>
                         <div className="flex items-center space-x-2">
                           <button
@@ -233,7 +320,21 @@ export default function DonesPage() {
                         </div>
                       </div>
                       <div className="p-4" ref={resultsRef}>
-                        <PersonalityResults results={testResults} />
+                        {currentTest === 'personalidad' && (
+                          <PersonalityResults results={testResults} />
+                        )}
+                        {currentTest === 'dones' && (
+                          <DonesResults 
+                            giftResults={testResults || {}}
+                            personalityResults={userTests.find(t => t.slug === 'personalidad')?.results || {}}
+                          />
+                        )}
+                        {currentTest === 'habilidades' && (
+                          <SkillsResults skillResults={testResults || {}} />
+                        )}
+                        {currentTest === 'pasion' && (
+                          <PassionResults results={testResults || {}} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -241,6 +342,7 @@ export default function DonesPage() {
               </div>
             )}
 
+            {/* Invite Modal */}
             {isInviteModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
                 <div className="bg-white rounded-lg p-6 max-w-md w-full">
