@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['next-auth']
+    serverExternalPackages: [...], // Update from serverComponentsExternalPackages
   },
   images: {
     domains: ['cdn.sanity.io']
