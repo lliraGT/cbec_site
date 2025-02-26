@@ -89,6 +89,15 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
   // Get passion groups and types
   const passionGroups = passionResults?.topFiveGroups || [];
   const passionTypes = passionResults?.topThreePassions || [];
+  
+  // Get experience results
+  const experienceTest = getTestData('experiencia');
+  const experienceResults = experienceTest.results || {};
+  
+  // Get top experiences and lessons
+  const topExperiences = experienceResults?.topTwoExperiences || [];
+  const lessonsLearned = experienceResults?.lessonsLearned || '';
+  const impactOnMinistry = experienceResults?.impactOnMinistry || '';
 
   // Calculate completion percentage
   const completedTests = Array.isArray(userTests) 
@@ -246,7 +255,32 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
               {/* Experience Column */}
               <div className="bg-gradient-to-b from-[#f0f4f8] to-[#e6eef5] rounded-lg p-4 border border-[#d1e0ec] shadow-sm">
                 <h3 className="font-bold text-[#8B2332] mb-3">Experiencia</h3>
-                <div className="text-gray-400 italic">Pendiente</div>
+                {experienceTest.status === 'completado' ? (
+                  <div className="space-y-2">
+                    <div className="bg-white p-2 rounded shadow-sm border border-[#b8c6d6]">
+                      <span className="font-semibold text-[#2c3e50]">Lecciones Aprendidas:</span>
+                      <div className="text-xs mt-1 text-[#4a5568]">
+                        {lessonsLearned ? (
+                          <div className="italic">"{lessonsLearned.substring(0, 80)}..."</div>
+                        ) : (
+                          <div className="text-gray-500">No definidas</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-white p-2 rounded shadow-sm border border-[#b8c6d6]">
+                      <span className="font-semibold text-[#2c3e50]">Impacto en Ministerio:</span>
+                      <div className="text-xs mt-1 text-[#4a5568]">
+                        {impactOnMinistry ? (
+                          <div className="italic">"{impactOnMinistry.substring(0, 80)}..."</div>
+                        ) : (
+                          <div className="text-gray-500">No definido</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-400 italic">Pendiente</div>
+                )}
               </div>
             </div>
 
@@ -264,7 +298,15 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
                     hacia roles de servicio que combinan {passionTypes[0] || ''} y {passionTypes[1] || ''}.
                     <br/><br/>
                     Su pasión por grupos como {passionGroups[0] || ''} y {passionGroups[1] || ''} 
-                    indica áreas donde su ministerio puede tener mayor impacto.
+                    &nbsp;indica áreas donde su ministerio puede tener mayor impacto.
+                    {experienceTest.status === 'completado' && topExperiences.length > 0 && (
+                      <>
+                        <br/><br/>
+                        Sus experiencias significativas como {topExperiences[0] || ''} 
+                        {topExperiences[1] ? ` y ${topExperiences[1]}` : ''} 
+                        le han proporcionado una perspectiva única que enriquece su ministerio.
+                      </>
+                    )}
                   </>
                 )}
               </p>

@@ -231,9 +231,12 @@ export default function DonesPage() {
       <main className={`pt-16 min-h-screen ${sidebarOpen ? 'ml-64' : ''} transition-margin duration-300`}>
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6">
               <h1 className="text-2xl font-semibold text-gray-900">Descubre</h1>
-              <p className="text-sm text-gray-600 mt-1">Tomado del Libro: "Descubre el llamado que el Señor te ha dado" Por Jay McSwain</p>
+              <p className="text-sm text-gray-600">Tomado del Libro: "Descubre el llamado que el Señor te ha dado" Por Jay McSwain</p>
+            </div>
+
+            <div className="flex justify-end mb-6">
               <button
                 onClick={() => setIsInviteModalOpen(true)}
                 className="px-4 py-2 bg-[#8B2332] text-white rounded-md hover:bg-[#7a1e2b] transition-colors"
