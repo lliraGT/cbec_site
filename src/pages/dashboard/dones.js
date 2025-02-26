@@ -101,7 +101,8 @@ export default function DonesPage() {
           slug: 'experiencia',
           name: 'Test de Experiencia',
           status: data.experienceTestCompleted ? 'completado' : 'pendiente',
-          completionDate: data.experienceTestCompletionDate
+          completionDate: data.experienceTestCompletionDate,
+          results: data.experienceTestResults || {}
         },
         {
           slug: 'pasion',
@@ -133,6 +134,13 @@ export default function DonesPage() {
     console.log('Found test:', test);
     
     if (test.status === 'completado') {
+      console.log('Setting test results for:', testSlug);
+      console.log('Full test object:', test);
+      console.log('Raw results:', test.results);
+      // Extra debugging
+        if (!test.results) {
+          console.error('WARNING: test.results is empty or undefined');
+        }
       // If test is completed, show results
       setTestResults(test.results);
       setCurrentTest(testSlug);
@@ -378,7 +386,10 @@ export default function DonesPage() {
                           <PassionResults results={testResults || {}} />
                         )}
                         {currentTest === 'experiencia' && (
-                          <ExperienceResults results={testResults || {}} />
+                          <ExperienceResults 
+                            results={testResults || {}} 
+                            key={currentTest} 
+                          />
                         )}
                       </div>
                     </div>
