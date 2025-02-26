@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Download, Share } from 'lucide-react';
+import MinistryMatching from './MinistryMatching';
 
 const GlobalResultsOverview = ({ userTests = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -314,6 +315,9 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
           </div>
         )}
       </div>
+
+      {/* Ministry Matching Section - Added here */}
+      <MinistryMatching userTests={userTests} />
     </div>
   );
 };
