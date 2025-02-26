@@ -241,3 +241,58 @@ export async function updatePassionTest(userId, results) {
     return { error: 'Error updating test progress' };
   }
 }
+
+// Add this function to your src/utils/userProgress.js file
+
+export async function updateExperienceTest(userId, results) {
+  console.log('Updating experience test with:', { userId, results });
+
+  if (!userId) {
+    return { error: 'Missing required fields: userId' };
+  }
+
+  // Validate results
+  if (!results || typeof results !== 'object') {
+    return { error: 'Missing required fields: results must be an object' };
+  }
+
+  try {
+    // Make sure these properties exist even if empty
+    const sanitizedResults = {
+      experienceTypes: results.experienceTypes || [],
+      significantEvents: results.significantEvents || [],
+      positiveExperiences: results.positiveExperiences || [],
+      painfulExperiences: results.painfulExperiences || [],
+      lessonsLearned: results.lessonsLearned || '',
+      impactOnMinistry: results.impactOnMinistry || '',
+      topTwoExperiences: results.topTwoExperiences || []
+    };
+
+    // Log the actual data being sent
+    console.log('Sanitized experience results being sent to API:', sanitizedResults);
+
+    const response = await fetch('/api/user-progress/update', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        testType: 'experience',
+        results: sanitizedResults,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('API Response for experience test update:', data);
+
+    if (!response.ok) {
+      return { error: data.error || 'Error updating test progress' };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating experience test:', error);
+    return { error: 'Error updating test progress' };
+  }
+}

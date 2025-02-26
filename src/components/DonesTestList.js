@@ -1,7 +1,8 @@
 import React from 'react';
 import { ClipboardCheck, ArrowRight } from "lucide-react";
+import ResetTestButton from '@/components/ResetTestButton';
 
-const DonesTestList = ({ userTests = [], onStartTest }) => {
+const DonesTestList = ({ userTests = [], onStartTest, onResetTest, userId }) => {
   const tests = [
     {
       slug: "personalidad",
@@ -95,17 +96,26 @@ const DonesTestList = ({ userTests = [], onStartTest }) => {
                     : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button
-                    onClick={() => onStartTest(test.slug)}
-                    className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                      test.status === 'completado'
-                        ? 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 border-transparent'
-                    }`}
-                  >
-                    {test.status === 'completado' ? 'Ver Resultados' : 'Comenzar Test'}
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end space-x-2">
+                    {test.status === 'completado' && (
+                      <ResetTestButton 
+                        testSlug={test.slug} 
+                        userId={userId} 
+                        onReset={() => onResetTest && onResetTest(test.slug)} 
+                      />
+                    )}
+                    <button
+                      onClick={() => onStartTest(test.slug)}
+                      className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                        test.status === 'completado'
+                          ? 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                          : 'bg-blue-600 text-white hover:bg-blue-700 border-transparent'
+                      }`}
+                    >
+                      {test.status === 'completado' ? 'Ver Resultados' : 'Comenzar Test'}
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -114,6 +124,12 @@ const DonesTestList = ({ userTests = [], onStartTest }) => {
       </div>
     </div>
   );
+};
+
+// Update the default props
+DonesTestList.defaultProps = {
+  onStartTest: () => {},
+  onResetTest: () => {},
 };
 
 export default DonesTestList;

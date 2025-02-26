@@ -13,6 +13,8 @@ import SkillsTest from '@/components/SkillsTest';
 import SkillsResults from '@/components/test/results/SkillsResults';
 import PassionTest from '@/components/PassionTest';
 import PassionResults from '@/components/test/results/PassionResults';
+import ExperienceTest from '@/components/ExperienceTest';
+import ExperienceResults from '@/components/test/results/ExperienceResults';
 import EmailInvite from '@/components/EmailInvite';
 import DonesTestList from '@/components/DonesTestList';
 import GlobalResultsOverview from '@/components/GlobalResultsOverview';
@@ -24,6 +26,7 @@ export default function DonesPage() {
   const [isDonesTestOpen, setIsDonesTestOpen] = useState(false);
   const [isSkillsTestOpen, setIsSkillsTestOpen] = useState(false);
   const [isPassionTestOpen, setIsPassionTestOpen] = useState(false);
+  const [isExperienceTestOpen, setIsExperienceTestOpen] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
@@ -146,6 +149,8 @@ export default function DonesPage() {
       } else if (testSlug === 'pasion') {
         console.log('Setting passion test to open');
         setIsPassionTestOpen(true);
+      } else if (testSlug === 'experiencia') {
+        setIsExperienceTestOpen(true);
       }
       console.log('Current test state:', {
         isTestOpen,
@@ -163,7 +168,21 @@ export default function DonesPage() {
     setIsDonesTestOpen(false);
     setIsSkillsTestOpen(false);
     setIsPassionTestOpen(false);
+    setIsExperienceTestOpen(false);
     setCurrentTest(null);
+  };
+
+  const handleResetTest = async (testSlug) => {
+    try {
+      // Refresh user progress after reset
+      await fetchUserProgress();
+      
+      // Show success message
+      // You could add a toast notification here if you have a notification system
+      console.log(`Test ${testSlug} reset successfully`);
+    } catch (error) {
+      console.error('Error handling test reset:', error);
+    }
   };
 
   const toggleSidebar = () => {
@@ -219,6 +238,8 @@ export default function DonesPage() {
             <DonesTestList 
               userTests={userTests}
               onStartTest={handleStartTest}
+              onResetTest={handleResetTest}
+              userId={session?.user?.id}
             />
 
             {/* Global Results Overview Section */}
@@ -287,6 +308,21 @@ export default function DonesPage() {
               </div>
             )}
 
+            {/* Experience Test Modal */}
+            {isExperienceTestOpen && currentTest === 'experiencia' && (
+              <ExperienceTest
+                isOpen={isExperienceTestOpen}
+                onClose={() => {
+                  setIsExperienceTestOpen(false);
+                  setCurrentTest(null);
+                }}
+                onComplete={handleTestComplete}
+                user={{
+                  id: session?.user?.id
+                }}
+              />
+            )}
+
             {/* Results Modals */}
             {isResultsOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
@@ -340,6 +376,9 @@ export default function DonesPage() {
                         )}
                         {currentTest === 'pasion' && (
                           <PassionResults results={testResults || {}} />
+                        )}
+                        {currentTest === 'experiencia' && (
+                          <ExperienceResults results={testResults || {}} />
                         )}
                       </div>
                     </div>
