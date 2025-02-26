@@ -312,12 +312,14 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
                 )}
               </p>
             </div>
+            
+            {/* Ministry Matching Section - Now included inside the expanded section */}
+            <div className="mt-8">
+              <MinistryMatching userTests={userTests} />
+            </div>
           </div>
         )}
       </div>
-
-      {/* Ministry Matching Section - Added here */}
-      <MinistryMatching userTests={userTests} />
     </div>
   );
 };
