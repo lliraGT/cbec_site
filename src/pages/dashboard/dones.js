@@ -15,6 +15,8 @@ import PassionTest from '@/components/PassionTest';
 import PassionResults from '@/components/test/results/PassionResults';
 import EmailInvite from '@/components/EmailInvite';
 import DonesTestList from '@/components/DonesTestList';
+import GlobalResultsOverview from '@/components/GlobalResultsOverview';
+import PrintableResultsSheet from '@/components/PrintableResultsSheet';
 
 export default function DonesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -213,10 +215,14 @@ export default function DonesPage() {
               </button>
             </div>
 
+            {/* Test List Section */}
             <DonesTestList 
               userTests={userTests}
               onStartTest={handleStartTest}
             />
+
+            {/* Global Results Overview Section */}
+            <GlobalResultsOverview userTests={userTests} />
 
             {/* Personality Test Modal */}
             {isTestOpen && currentTest === 'personalidad' && (
