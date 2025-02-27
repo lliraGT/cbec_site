@@ -25,7 +25,7 @@ const GlobalResultsOverview = ({ userTests = [] }) => {
   const personalityTraits = personalityResults && Object.keys(personalityResults).length > 0
     ? Object.entries(personalityResults)
         .sort(([, a], [, b]) => (b || 0) - (a || 0))
-        .slice(0, 3)
+        .slice(0, 2)
         .map(([type]) => type)
     : [];
 
