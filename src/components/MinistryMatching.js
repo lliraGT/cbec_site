@@ -689,11 +689,15 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                         <span className={`ml-3 px-2 py-1 rounded-full text-xs text-white font-medium ${compatibilityLabel.color}`}>
                           {compatibilityLabel.text} ({ministry.compatibilityScore}%)
                         </span>
+
+                        <span className="ml-3 px-2 py-1 rounded-full">
+                            {getCommitmentLevel(ministry.commitmentLevel)}
+                        </span>
                       </div>
                       
                       <p className="text-gray-600 mb-4">{ministry.description}</p>
                       
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      {/*<div className="flex flex-wrap gap-2 mb-4">
                         {getCommitmentLevel(ministry.commitmentLevel)}
                         
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -705,7 +709,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                           <Calendar className="h-3 w-3 mr-1" />
                           {ministry.schedule}
                         </span>
-                      </div>
+                      </div>*/}
                       
                       {/* Razones de Coincidencia (visibles por defecto) */}
                       {ministry.matchReasons.length > 0 && (
@@ -809,8 +813,8 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                 <div className="space-y-2 mt-2">
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Dones Espirituales</span>
-                                      <span>{ministry.componentScores.giftsScore}%</span>
+                                      <span className="font-medium text-gray-800">Dones Espirituales</span>
+                                      <span className="font-medium text-gray-800">{Math.ceil(ministry.componentScores.giftsScore)}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                                       <div 
@@ -822,8 +826,8 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Personalidad</span>
-                                      <span>{ministry.componentScores.personalityScore}%</span>
+                                      <span className="font-medium text-gray-800">Personalidad</span>
+                                      <span className="font-medium text-gray-800">{Math.ceil(ministry.componentScores.personalityScore)}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                                       <div 
@@ -835,8 +839,8 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Habilidades</span>
-                                      <span>{ministry.componentScores.skillsScore}%</span>
+                                      <span className="font-medium text-gray-800">Habilidades</span>
+                                      <span className="font-medium text-gray-800">{Math.ceil(ministry.componentScores.skillsScore)}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                                       <div 
@@ -848,8 +852,8 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Pasión</span>
-                                      <span>{ministry.componentScores.passionScore}%</span>
+                                      <span className="font-medium text-gray-800">Pasión</span>
+                                      <span className="font-medium text-gray-800">{Math.ceil(ministry.componentScores.passionScore)}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                                       <div 
