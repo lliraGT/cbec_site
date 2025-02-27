@@ -241,7 +241,7 @@ export default function DonesPage() {
                 onClick={() => setIsInviteModalOpen(true)}
                 className="px-4 py-2 bg-[#8B2332] text-white rounded-md hover:bg-[#7a1e2b] transition-colors"
               >
-                Send Invite
+                Enviar Invitación a Descubre
               </button>
             </div>
 
