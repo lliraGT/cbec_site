@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, ArrowUpDown, ChevronDown, ChevronUp, Info, Users, Star, Calendar } from 'lucide-react';
 import _ from 'lodash';
 
-// Ministry Matching Component
+// Componente de Conexión Ministerial
 const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
@@ -18,7 +18,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
   const [ministries, setMinistries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get test results with safe fallbacks
+  // Obtener datos de pruebas con valores predeterminados seguros
   const getTestData = (slug) => {
     const test = userTests.find(t => t?.slug === slug);
     return test?.status === 'completado' ? test.results || {} : {};
@@ -30,7 +30,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
   const passionResults = getTestData('pasion');
   const experienceResults = getTestData('experiencia');
 
-  // Get top personality traits
+  // Obtener principales rasgos de personalidad
   const personalityTraits = Object.keys(personalityResults).length > 0
     ? Object.entries(personalityResults)
         .sort(([, a], [, b]) => (b || 0) - (a || 0))
@@ -38,7 +38,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         .map(([type]) => type)
     : [];
 
-  // Get top spiritual gifts
+  // Obtener principales dones espirituales
   const topDones = Object.keys(donesResults).length > 0
     ? Object.entries(donesResults)
         .sort(([, a], [, b]) => (b || 0) - (a || 0))
@@ -46,7 +46,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         .map(([gift]) => gift)
     : [];
 
-  // Get top skills
+  // Obtener principales habilidades
   const topSkills = Object.keys(skillsResults).length > 0
     ? Object.entries(skillsResults)
         .sort(([, a], [, b]) => (b || 0) - (a || 0))
@@ -54,24 +54,24 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         .map(([category]) => category)
     : [];
 
-  // Get top passion areas
+  // Obtener áreas principales de pasión
   const passionGroups = passionResults?.topFiveGroups || [];
   const passionTypes = passionResults?.topThreePassions || [];
 
-  // Fetch or prepare ministry opportunities
+  // Obtener o preparar oportunidades de ministerio
   useEffect(() => {
-    // This would typically be an API call
+    // Esto normalmente sería una llamada a la API
     const fetchMinistryOpportunities = async () => {
       setIsLoading(true);
       try {
         if (ministryOpportunities) {
           setMinistries(ministryOpportunities);
         } else {
-          // Default ministry definitions if none are provided
-          setMinistries(defaultMinistries);
+          // Ministerios predeterminados si no se proporciona ninguno
+          setMinistries(ministeriosPredeterminados);
         }
       } catch (error) {
-        console.error('Error fetching ministry opportunities:', error);
+        console.error('Error al cargar oportunidades de ministerio:', error);
       } finally {
         setIsLoading(false);
       }
@@ -80,15 +80,15 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     fetchMinistryOpportunities();
   }, [ministryOpportunities]);
 
-  // Calculate compatibility scores for all ministries
+  // Calcular puntuaciones de compatibilidad para todos los ministerios
   const matchedMinistries = useMemo(() => {
     if (!ministries.length) return [];
 
     return ministries.map(ministry => {
-      // Initialize the match reasons for this ministry
+      // Inicializar las razones de coincidencia para este ministerio
       const matchReasons = [];
       
-      // Calculate personality compatibility (0-100)
+      // Calcular compatibilidad de personalidad (0-100)
       let personalityScore = 0;
       if (personalityTraits.length > 0) {
         const matchingPersonalityTypes = ministry.recommendedTraits.personalityTypes.filter(
@@ -99,12 +99,12 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         if (matchingPersonalityTypes.length > 0) {
           matchReasons.push({
             type: 'personality',
-            description: `Your ${matchingPersonalityTypes.join('/')} personality type is well-suited for this ministry.`
+            description: `Tu tipo de personalidad ${matchingPersonalityTypes.join('/')} es muy adecuado para este ministerio.`
           });
         }
       }
 
-      // Calculate spiritual gifts compatibility (0-100)
+      // Calcular compatibilidad de dones espirituales (0-100)
       let giftsScore = 0;
       if (topDones.length > 0) {
         const matchingGifts = ministry.recommendedTraits.spiritualGifts.filter(
@@ -137,12 +137,12 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
           
           matchReasons.push({
             type: 'gifts',
-            description: `Your spiritual gifts of ${giftLabels.join(', ')} are valuable in this ministry.`
+            description: `Tus dones espirituales de ${giftLabels.join(', ')} son valiosos en este ministerio.`
           });
         }
       }
 
-      // Calculate skills compatibility (0-100)
+      // Calcular compatibilidad de habilidades (0-100)
       let skillsScore = 0;
       if (topSkills.length > 0) {
         const matchingSkills = ministry.recommendedTraits.skillTypes.filter(
@@ -153,24 +153,24 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         if (matchingSkills.length > 0) {
           const skillLabels = matchingSkills.map(skill => {
             const labels = {
-              R: 'Hands-on/Practical', 
-              I: 'Analytical/Research',
-              A: 'Creative/Artistic',
-              S: 'Social/Helper',
-              E: 'Entrepreneurial/Leadership',
-              C: 'Detailed/Organizational'
+              R: 'Práctico/Manuales', 
+              I: 'Analítico/Investigación',
+              A: 'Creativo/Artístico',
+              S: 'Social/Ayudador',
+              E: 'Emprendedor/Liderazgo',
+              C: 'Detallista/Organizacional'
             };
             return labels[skill] || skill;
           });
           
           matchReasons.push({
             type: 'skills',
-            description: `Your ${skillLabels.join(', ')} skills are needed in this ministry.`
+            description: `Tus habilidades de ${skillLabels.join(', ')} son necesarias en este ministerio.`
           });
         }
       }
 
-      // Calculate passion compatibility (0-100)
+      // Calcular compatibilidad de pasión (0-100)
       let passionScore = 0;
       if (passionGroups.length > 0) {
         const relevantPassionGroups = ministry.recommendedTraits.passionGroups || [];
@@ -182,14 +182,30 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
           : 0;
         
         if (matchingPassions.length > 0) {
+          const passionLabels = matchingPassions.map(passion => {
+            const labels = {
+              'Children': 'Niños',
+              'Youth': 'Jóvenes',
+              'Elderly': 'Ancianos',
+              'Families': 'Familias',
+              'Homeless': 'Personas sin hogar',
+              'Addicts': 'Adicciones',
+              'International': 'Internacional',
+              'Prayer': 'Oración',
+              'Worship': 'Adoración',
+              'Teaching': 'Enseñanza'
+            };
+            return labels[passion] || passion;
+          });
+          
           matchReasons.push({
             type: 'passion',
-            description: `Your passion for ${matchingPassions.join(', ')} aligns perfectly with this ministry's focus.`
+            description: `Tu pasión por ${passionLabels.join(', ')} se alinea perfectamente con el enfoque de este ministerio.`
           });
         }
       }
 
-      // Calculate experience relevance (0-100)
+      // Calcular relevancia de experiencia (0-100)
       let experienceScore = 0;
       const relevantExperiences = ministry.recommendedTraits.relevantExperiences || [];
       
@@ -204,12 +220,12 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         if (matchingExperiences.length > 0) {
           matchReasons.push({
             type: 'experience',
-            description: `Your life experiences make you especially effective in this area.`
+            description: `Tus experiencias de vida te hacen especialmente efectivo en esta área.`
           });
         }
       }
 
-      // Calculate overall compatibility score (weighted average)
+      // Calcular puntuación general de compatibilidad (promedio ponderado)
       const weights = {
         personality: 0.15,
         gifts: 0.35,
@@ -241,17 +257,17 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     });
   }, [ministries, personalityTraits, topDones, topSkills, passionGroups, experienceResults]);
 
-  // Apply search filtering
+  // Aplicar filtrado de búsqueda
   const filteredMinistries = useMemo(() => {
     if (!matchedMinistries.length) return [];
 
     return matchedMinistries.filter(ministry => {
-      // Text search
+      // Búsqueda de texto
       const matchesSearch = searchTerm === '' || 
         ministry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ministry.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filter by selected filters
+      // Filtrado por filtros seleccionados
       const matchesPersonality = selectedFilters.personalityTypes.length === 0 || 
         ministry.recommendedTraits.personalityTypes.some(type => 
           selectedFilters.personalityTypes.includes(type)
@@ -282,7 +298,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     });
   }, [matchedMinistries, searchTerm, selectedFilters]);
 
-  // Apply sorting
+  // Aplicar ordenamiento
   const sortedMinistries = useMemo(() => {
     if (!filteredMinistries.length) return [];
 
@@ -309,7 +325,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     return sorted;
   }, [filteredMinistries, sortConfig]);
 
-  // Handle sort request
+  // Manejar solicitud de ordenamiento
   const requestSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -318,7 +334,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     setSortConfig({ key, direction });
   };
 
-  // Handle filter changes
+  // Manejar cambios de filtro
   const handleFilterChange = (filterType, value) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
@@ -333,7 +349,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     });
   };
 
-  // Clear all filters
+  // Limpiar todos los filtros
   const clearFilters = () => {
     setSelectedFilters({
       personalityTypes: [],
@@ -345,36 +361,42 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
     setSearchTerm('');
   };
 
-  // Get compatibility label based on score
+  // Obtener etiqueta de compatibilidad basada en la puntuación
   const getCompatibilityLabel = (score) => {
-    if (score >= 80) return { text: 'Excellent Match', color: 'bg-green-500' };
-    if (score >= 60) return { text: 'Good Match', color: 'bg-blue-500' };
-    if (score >= 40) return { text: 'Moderate Match', color: 'bg-yellow-500' };
-    return { text: 'Consider Exploring', color: 'bg-gray-500' };
+    if (score >= 80) return { text: 'Excelente Coincidencia', color: 'bg-green-500' };
+    if (score >= 60) return { text: 'Buena Coincidencia', color: 'bg-blue-500' };
+    if (score >= 40) return { text: 'Coincidencia Moderada', color: 'bg-yellow-500' };
+    return { text: 'Considerar Explorar', color: 'bg-gray-500' };
   };
 
-  // Get commitment level element with appropriate styling
+  // Obtener elemento de nivel de compromiso con estilo apropiado
   const getCommitmentLevel = (level) => {
     const styles = {
       'Low': 'bg-green-100 text-green-800',
       'Medium': 'bg-yellow-100 text-yellow-800',
       'High': 'bg-red-100 text-red-800'
     };
+    
+    const commitmentLabels = {
+      'Low': 'Compromiso Bajo',
+      'Medium': 'Compromiso Medio', 
+      'High': 'Compromiso Alto'
+    };
 
     return (
       <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${styles[level]}`}>
-        {level} Commitment
+        {commitmentLabels[level]}
       </span>
     );
   };
 
-  // Define all available filters
+  // Definir todas las opciones de filtros disponibles
   const filterOptions = {
     personalityTypes: [
-      { value: 'D', label: 'D (Dominant)' },
-      { value: 'I', label: 'I (Influencing)' },
-      { value: 'S', label: 'S (Steady)' },
-      { value: 'C', label: 'C (Compliant)' }
+      { value: 'D', label: 'D (Dominante)' },
+      { value: 'I', label: 'I (Influyente)' },
+      { value: 'S', label: 'S (Estable)' },
+      { value: 'C', label: 'C (Concienzudo)' }
     ],
     spiritualGifts: [
       { value: 'administracion', label: 'Administración' },
@@ -395,50 +417,50 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
       { value: 'servicio', label: 'Servicio' }
     ],
     skillTypes: [
-      { value: 'R', label: 'Realista (Hands-on)' },
-      { value: 'I', label: 'Investigador (Analytical)' },
-      { value: 'A', label: 'Artístico (Creative)' },
-      { value: 'S', label: 'Social (Helper)' },
-      { value: 'E', label: 'Emprendedor (Leader)' },
-      { value: 'C', label: 'Convencional (Organized)' }
+      { value: 'R', label: 'Realista (Práctico)' },
+      { value: 'I', label: 'Investigador (Analítico)' },
+      { value: 'A', label: 'Artístico (Creativo)' },
+      { value: 'S', label: 'Social (Ayudador)' },
+      { value: 'E', label: 'Emprendedor (Líder)' },
+      { value: 'C', label: 'Convencional (Organizado)' }
     ],
     passionGroups: [
-      { value: 'Children', label: 'Children' },
-      { value: 'Youth', label: 'Youth' },
-      { value: 'Elderly', label: 'Elderly' },
-      { value: 'Families', label: 'Families' },
-      { value: 'Homeless', label: 'Homeless' },
-      { value: 'Addicts', label: 'Addiction Recovery' },
-      { value: 'International', label: 'International' },
-      { value: 'Prayer', label: 'Prayer' },
-      { value: 'Worship', label: 'Worship' },
-      { value: 'Teaching', label: 'Teaching' }
+      { value: 'Children', label: 'Niños' },
+      { value: 'Youth', label: 'Jóvenes' },
+      { value: 'Elderly', label: 'Ancianos' },
+      { value: 'Families', label: 'Familias' },
+      { value: 'Homeless', label: 'Personas sin hogar' },
+      { value: 'Addicts', label: 'Recuperación de adicciones' },
+      { value: 'International', label: 'Internacional' },
+      { value: 'Prayer', label: 'Oración' },
+      { value: 'Worship', label: 'Adoración' },
+      { value: 'Teaching', label: 'Enseñanza' }
     ],
     commitmentLevel: [
-      { value: 'Low', label: 'Low Commitment' },
-      { value: 'Medium', label: 'Medium Commitment' },
-      { value: 'High', label: 'High Commitment' }
+      { value: 'Low', label: 'Compromiso Bajo' },
+      { value: 'Medium', label: 'Compromiso Medio' },
+      { value: 'High', label: 'Compromiso Alto' }
     ]
   };
 
-  // Check if any tests are completed
+  // Verificar si se ha completado alguna prueba
   const hasCompletedTests = userTests.some(test => test?.status === 'completado');
 
-  // If no tests completed, show appropriate message
+  // Si no se han completado pruebas, mostrar un mensaje apropiado
   if (!hasCompletedTests) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
-        <h2 className="text-xl font-bold text-[#8B2332] mb-4">Ministry Matching</h2>
+        <h2 className="text-xl font-bold text-[#8B2332] mb-4">Conexión Ministerial</h2>
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-6">
           <p className="text-amber-800">
-            Please complete at least one personality assessment to see ministry recommendations.
+            Por favor completa al menos una evaluación de personalidad para ver recomendaciones de ministerios.
           </p>
         </div>
         <button 
           onClick={() => window.location.href = '/dashboard/dones'}
           className="px-4 py-2 bg-[#8B2332] text-white rounded hover:bg-[#7a1e2b] transition-colors"
         >
-          Go to Assessments
+          Ir a Evaluaciones
         </button>
       </div>
     );
@@ -447,34 +469,34 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b">
-        <h2 className="text-xl font-bold text-[#8B2332]">Ministry Matching</h2>
-        <p className="text-gray-600 mt-1">Find ministry opportunities that align with your unique gifts and calling</p>
+        <h2 className="text-xl font-bold text-[#8B2332]">Conexión Ministerial</h2>
+        <p className="text-gray-600 mt-1">Encuentra oportunidades de ministerio que se alineen con tus dones y llamado único</p>
       </div>
 
-      {/* Search and Filter Bar */}
+      {/* Barra de Búsqueda y Filtros */}
       <div className="p-4 md:p-6 border-b bg-gray-50">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Field */}
+          {/* Campo de Búsqueda */}
           <div className="relative w-full md:w-1/3">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search ministries..."
+              placeholder="Buscar ministerios..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B2332] focus:border-[#8B2332]"
             />
           </div>
 
-          {/* Filter Toggle Button */}
+          {/* Botón de Alternar Filtros */}
           <button
             onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
           >
             <Filter className="h-5 w-5 mr-2 text-gray-600" />
-            <span className="text-gray-700">Filters</span>
+            <span className="text-gray-700">Filtros</span>
             {Object.values(selectedFilters).flat().length > 0 && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#8B2332] text-white">
                 {Object.values(selectedFilters).flat().length}
@@ -482,13 +504,13 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
             )}
           </button>
 
-          {/* Sort Dropdown */}
+          {/* Menú Desplegable de Ordenación */}
           <div className="relative">
             <button
               className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
             >
               <ArrowUpDown className="h-5 w-5 mr-2 text-gray-600" />
-              <span className="text-gray-700">Sort</span>
+              <span className="text-gray-700">Ordenar</span>
               <ChevronDown className="h-4 w-4 ml-1 text-gray-600" />
             </button>
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10 hidden">
@@ -496,41 +518,41 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                 onClick={() => requestSort('compatibilityScore')}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
               >
-                By Compatibility
+                Por Compatibilidad
               </button>
               <button 
                 onClick={() => requestSort('name')}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
               >
-                By Name
+                Por Nombre
               </button>
               <button 
                 onClick={() => requestSort('commitmentLevel')}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
               >
-                By Commitment Level
+                Por Nivel de Compromiso
               </button>
             </div>
           </div>
 
-          {/* Clear Filters (only shown if filters are applied) */}
+          {/* Limpiar Filtros (solo se muestra si se aplican filtros) */}
           {Object.values(selectedFilters).flat().length > 0 && (
             <button
               onClick={clearFilters}
               className="text-[#8B2332] hover:text-[#7a1e2b] transition-colors"
             >
-              Clear all filters
+              Limpiar todos los filtros
             </button>
           )}
         </div>
 
-        {/* Filter Panel */}
+        {/* Panel de Filtros */}
         {isFilterPanelOpen && (
           <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-              {/* Personality Type Filters */}
+              {/* Filtros de Tipo de Personalidad */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Personality Type</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Tipo de Personalidad</h3>
                 <div className="space-y-2">
                   {filterOptions.personalityTypes.map((option) => (
                     <label key={option.value} className="flex items-center">
@@ -546,9 +568,9 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                 </div>
               </div>
 
-              {/* Spiritual Gifts Filters */}
+              {/* Filtros de Dones Espirituales */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Spiritual Gifts</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Dones Espirituales</h3>
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                   {filterOptions.spiritualGifts.map((option) => (
                     <label key={option.value} className="flex items-center">
@@ -564,9 +586,9 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                 </div>
               </div>
 
-              {/* Skills Filters */}
+              {/* Filtros de Habilidades */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Skills</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Habilidades</h3>
                 <div className="space-y-2">
                   {filterOptions.skillTypes.map((option) => (
                     <label key={option.value} className="flex items-center">
@@ -582,9 +604,9 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                 </div>
               </div>
 
-              {/* Passion Group Filters */}
+              {/* Filtros de Grupos de Pasión */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Passion Areas</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Áreas de Pasión</h3>
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                   {filterOptions.passionGroups.map((option) => (
                     <label key={option.value} className="flex items-center">
@@ -600,9 +622,9 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                 </div>
               </div>
 
-              {/* Commitment Level Filters */}
+              {/* Filtros de Nivel de Compromiso */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Commitment Level</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Nivel de Compromiso</h3>
                 <div className="space-y-2">
                   {filterOptions.commitmentLevel.map((option) => (
                     <label key={option.value} className="flex items-center">
@@ -622,38 +644,38 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
         )}
       </div>
 
-      {/* Loading State */}
+      {/* Estado de Carga */}
       {isLoading ? (
         <div className="p-12 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8B2332] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading ministry opportunities...</p>
+          <p className="mt-4 text-gray-600">Cargando oportunidades de ministerio...</p>
         </div>
       ) : (
         <>
-          {/* Results Count */}
+          {/* Recuento de Resultados */}
           <div className="px-6 py-3 border-b bg-gray-50">
             <p className="text-sm text-gray-600">
-              Showing <span className="font-medium">{sortedMinistries.length}</span> ministry opportunities
-              {Object.values(selectedFilters).flat().length > 0 && ' (filtered)'}
+              Mostrando <span className="font-medium">{sortedMinistries.length}</span> oportunidades de ministerio
+              {Object.values(selectedFilters).flat().length > 0 && ' (filtradas)'}
             </p>
           </div>
 
-          {/* No Results */}
+          {/* Sin Resultados */}
           {sortedMinistries.length === 0 && (
             <div className="p-12 text-center">
-              <p className="text-gray-600">No matching ministry opportunities found.</p>
+              <p className="text-gray-600">No se encontraron oportunidades de ministerio que coincidan con tu búsqueda.</p>
               {Object.values(selectedFilters).flat().length > 0 && (
                 <button
                   onClick={clearFilters}
                   className="mt-4 px-4 py-2 bg-[#8B2332] text-white rounded hover:bg-[#7a1e2b] transition-colors"
                 >
-                  Clear Filters
+                  Limpiar Filtros
                 </button>
               )}
             </div>
           )}
 
-          {/* Results List */}
+          {/* Lista de Resultados */}
           <div className="divide-y">
             {sortedMinistries.map((ministry) => {
               const compatibilityLabel = getCompatibilityLabel(ministry.compatibilityScore);
@@ -676,7 +698,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                         
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           <Users className="h-3 w-3 mr-1" />
-                          {ministry.teamSize} Members
+                          {ministry.teamSize} Miembros
                         </span>
                         
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -685,7 +707,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                         </span>
                       </div>
                       
-                      {/* Match Reasons (visible by default) */}
+                      {/* Razones de Coincidencia (visibles por defecto) */}
                       {ministry.matchReasons.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-2">
                           {ministry.matchReasons.slice(0, 2).map((reason, index) => (
@@ -705,39 +727,39 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                       >
                         {expandedMinistry === ministry.id ? (
                           <>
-                            <span>Show Less</span>
+                            <span>Mostrar Menos</span>
                             <ChevronUp className="h-4 w-4 ml-1" />
                           </>
                         ) : (
                           <>
-                            <span>View Details</span>
+                            <span>Ver Detalles</span>
                             <ChevronDown className="h-4 w-4 ml-1" />
                           </>
                         )}
                       </button>
                       
                       <button className="mt-4 px-6 py-2 bg-[#8B2332] text-white rounded hover:bg-[#7a1e2b] transition-colors">
-                        Get Connected
+                        Conectarme
                       </button>
                     </div>
                   </div>
                   
-                  {/* Expanded Details */}
+                  {/* Detalles Expandidos */}
                   {expandedMinistry === ministry.id && (
                     <div className="mt-6 border-t pt-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h4 className="text-md font-semibold text-gray-900 mb-3">Ministry Details</h4>
+                          <h4 className="text-md font-semibold text-gray-900 mb-3">Detalles del Ministerio</h4>
                           
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="space-y-3">
                               <div>
-                                <h5 className="text-sm font-medium text-gray-700">Description</h5>
+                                <h5 className="text-sm font-medium text-gray-700">Descripción</h5>
                                 <p className="text-sm text-gray-600 mt-1">{ministry.longDescription || ministry.description}</p>
                               </div>
                               
                               <div>
-                                <h5 className="text-sm font-medium text-gray-700">Requirements</h5>
+                                <h5 className="text-sm font-medium text-gray-700">Requisitos</h5>
                                 <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
                                   {ministry.requirements.map((req, index) => (
                                     <li key={index}>{req}</li>
@@ -746,7 +768,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                               </div>
                               
                               <div>
-                                <h5 className="text-sm font-medium text-gray-700">Contact</h5>
+                                <h5 className="text-sm font-medium text-gray-700">Contacto</h5>
                                 <p className="text-sm text-gray-600 mt-1">
                                   {ministry.contactName} • {ministry.contactEmail}
                                 </p>
@@ -756,13 +778,13 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                         </div>
                         
                         <div>
-                          <h4 className="text-md font-semibold text-gray-900 mb-3">Compatibility Analysis</h4>
+                          <h4 className="text-md font-semibold text-gray-900 mb-3">Análisis de Compatibilidad</h4>
                           
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="space-y-3">
                               {ministry.matchReasons.length > 0 ? (
                                 <div>
-                                  <h5 className="text-sm font-medium text-gray-700">Why This Fits You</h5>
+                                  <h5 className="text-sm font-medium text-gray-700">Por Qué Te Queda Bien</h5>
                                   <ul className="space-y-2 mt-2">
                                     {ministry.matchReasons.map((reason, index) => (
                                       <li key={index} className="flex items-start">
@@ -774,20 +796,20 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                 </div>
                               ) : (
                                 <div>
-                                  <h5 className="text-sm font-medium text-gray-700">Low Compatibility Notes</h5>
+                                  <h5 className="text-sm font-medium text-gray-700">Notas de Baja Compatibilidad</h5>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    This ministry may require skills or gifts that differ from your strongest areas, 
-                                    but could be an opportunity for growth.
+                                    Este ministerio puede requerir habilidades o dones que difieren de tus áreas más fuertes, 
+                                    pero podría ser una oportunidad para crecer.
                                   </p>
                                 </div>
                               )}
                               
                               <div>
-                                <h5 className="text-sm font-medium text-gray-700">Compatibility Breakdown</h5>
+                                <h5 className="text-sm font-medium text-gray-700">Desglose de Compatibilidad</h5>
                                 <div className="space-y-2 mt-2">
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Spiritual Gifts</span>
+                                      <span>Dones Espirituales</span>
                                       <span>{ministry.componentScores.giftsScore}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -800,7 +822,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Personality</span>
+                                      <span>Personalidad</span>
                                       <span>{ministry.componentScores.personalityScore}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -813,7 +835,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Skills</span>
+                                      <span>Habilidades</span>
                                       <span>{ministry.componentScores.skillsScore}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -826,7 +848,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                   
                                   <div>
                                     <div className="flex justify-between text-xs mb-1">
-                                      <span>Passion</span>
+                                      <span>Pasión</span>
                                       <span>{ministry.componentScores.passionScore}%</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -854,22 +876,22 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
   );
 };
 
-// Default ministry opportunities - this would typically come from a database
-const defaultMinistries = [
+// Ministerios predeterminados - esto normalmente vendría de una base de datos
+const ministeriosPredeterminados = [
   {
     id: 1,
-    name: "Children's Ministry",
-    description: "Work with children to teach them about Jesus and help them grow in their faith.",
-    longDescription: "Our Children's Ministry provides a safe, fun, and engaging environment where children can learn about Jesus and grow in their faith. Team members help with Sunday School classes, children's church, and special events for kids of all ages.",
+    name: "Ministerio de Niños",
+    description: "Trabaja con niños para enseñarles acerca de Jesús y ayudarlos a crecer en su fe.",
+    longDescription: "Nuestro Ministerio de Niños proporciona un ambiente seguro, divertido y atractivo donde los niños pueden aprender acerca de Jesús y crecer en su fe. Los miembros del equipo ayudan con las clases de escuela dominical, la iglesia de los niños y eventos especiales para niños de todas las edades.",
     commitmentLevel: "Medium",
     teamSize: "15-20",
-    schedule: "Sundays, 9am-12pm",
-    contactName: "Maria Rodriguez",
+    schedule: "Domingos, 9am-12pm",
+    contactName: "María Rodríguez",
     contactEmail: "maria@church.org",
     requirements: [
-      "Love for children",
-      "Background check required",
-      "Minimum 6-month commitment"
+      "Amor por los niños",
+      "Verificación de antecedentes requerida",
+      "Compromiso mínimo de 6 meses"
     ],
     recommendedTraits: {
       personalityTypes: ["I", "S"],
@@ -881,18 +903,18 @@ const defaultMinistries = [
   },
   {
     id: 2,
-    name: "Worship Team",
-    description: "Lead the congregation in worship through music and song during services.",
-    longDescription: "Our Worship Team leads the congregation in worship through music during Sunday services and special events. Members may sing, play instruments, or operate audio/visual equipment to create a meaningful worship experience.",
+    name: "Equipo de Alabanza",
+    description: "Dirige a la congregación en la adoración a través de la música y el canto durante los servicios.",
+    longDescription: "Nuestro Equipo de Alabanza dirige a la congregación en adoración a través de la música durante los servicios dominicales y eventos especiales. Los miembros pueden cantar, tocar instrumentos u operar equipos audiovisuales para crear una experiencia de adoración significativa.",
     commitmentLevel: "High",
     teamSize: "10-15",
-    schedule: "Practice: Thursdays 7-9pm, Services: Sundays 8am-12pm",
+    schedule: "Práctica: Jueves 7-9pm, Servicios: Domingos 8am-12pm",
     contactName: "David Chen",
     contactEmail: "david@church.org",
     requirements: [
-      "Musical ability or technical skills",
-      "Audition required for musicians/vocalists",
-      "Weekly rehearsals plus Sunday services"
+      "Habilidad musical o conocimientos técnicos",
+      "Audición requerida para músicos/vocalistas",
+      "Ensayos semanales más servicios dominicales"
     ],
     recommendedTraits: {
       personalityTypes: ["I", "S", "D"],
@@ -904,18 +926,18 @@ const defaultMinistries = [
   },
   {
     id: 3,
-    name: "Welcome Team",
-    description: "Greet visitors and members, and help them feel at home in our church community.",
-    longDescription: "The Welcome Team creates a warm, inviting atmosphere for everyone who enters our church. Team members greet visitors, help newcomers find their way around, and provide information about our ministries and events.",
+    name: "Equipo de Bienvenida",
+    description: "Recibe a los visitantes y miembros, y ayúdalos a sentirse como en casa en nuestra comunidad de iglesia.",
+    longDescription: "El Equipo de Bienvenida crea un ambiente cálido y acogedor para todos los que entran en nuestra iglesia. Los miembros del equipo saludan a los visitantes, ayudan a los recién llegados a encontrar su camino, y proporcionan información sobre nuestros ministerios y eventos.",
     commitmentLevel: "Low",
     teamSize: "10-12",
-    schedule: "Sundays, rotation schedule",
-    contactName: "Isabella Martinez",
+    schedule: "Domingos, horario rotativo",
+    contactName: "Isabella Martínez",
     contactEmail: "isabella@church.org",
     requirements: [
-      "Friendly, outgoing personality",
-      "Knowledge of church programs",
-      "Arrive 30 minutes before service"
+      "Personalidad amigable y extrovertida",
+      "Conocimiento de los programas de la iglesia",
+      "Llegar 30 minutos antes del servicio"
     ],
     recommendedTraits: {
       personalityTypes: ["I", "S"],
@@ -927,18 +949,18 @@ const defaultMinistries = [
   },
   {
     id: 4,
-    name: "Prayer Ministry",
-    description: "Pray for the needs of the church and community, both individually and in groups.",
-    longDescription: "The Prayer Ministry is dedicated to interceding for the needs of our church, community, and world. Team members participate in prayer meetings, maintain the prayer room, and respond to prayer requests from the congregation.",
+    name: "Ministerio de Oración",
+    description: "Ora por las necesidades de la iglesia y la comunidad, tanto individualmente como en grupos.",
+    longDescription: "El Ministerio de Oración está dedicado a interceder por las necesidades de nuestra iglesia, comunidad y mundo. Los miembros del equipo participan en reuniones de oración, mantienen la sala de oración y responden a las peticiones de oración de la congregación.",
     commitmentLevel: "Medium",
     teamSize: "8-10",
-    schedule: "Weekly prayer meetings, flexible individual prayer times",
+    schedule: "Reuniones de oración semanales, tiempos de oración individual flexibles",
     contactName: "Samuel Washington",
     contactEmail: "samuel@church.org",
     requirements: [
-      "Commitment to regular prayer",
-      "Confidentiality",
-      "Attend at least one prayer meeting per month"
+      "Compromiso con la oración regular",
+      "Confidencialidad",
+      "Asistir al menos a una reunión de oración al mes"
     ],
     recommendedTraits: {
       personalityTypes: ["I", "C", "S"],
@@ -950,18 +972,18 @@ const defaultMinistries = [
   },
   {
     id: 5,
-    name: "Outreach Team",
-    description: "Share the love of Christ through community service and evangelism initiatives.",
-    longDescription: "The Outreach Team takes God's love beyond our church walls through service projects, evangelism, and community engagement. Members plan and participate in events that meet practical needs while sharing the message of Jesus.",
+    name: "Equipo de Alcance",
+    description: "Comparte el amor de Cristo a través del servicio comunitario e iniciativas de evangelismo.",
+    longDescription: "El Equipo de Alcance lleva el amor de Dios más allá de las paredes de nuestra iglesia a través de proyectos de servicio, evangelismo y participación comunitaria. Los miembros planifican y participan en eventos que satisfacen necesidades prácticas mientras comparten el mensaje de Jesús.",
     commitmentLevel: "Medium",
     teamSize: "15-25",
-    schedule: "Monthly planning meetings, regular outreach events",
+    schedule: "Reuniones de planificación mensuales, eventos de alcance regulares",
     contactName: "James Taylor",
     contactEmail: "james@church.org",
     requirements: [
-      "Heart for the lost",
-      "Availability for occasional weekends",
-      "Willingness to engage with strangers"
+      "Corazón para los perdidos",
+      "Disponibilidad para fines de semana ocasionales",
+      "Disposición para interactuar con extraños"
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I"],
@@ -973,18 +995,18 @@ const defaultMinistries = [
   },
   {
     id: 6,
-    name: "Media Team",
-    description: "Manage sound, lighting, presentations, and online platforms for church services and events.",
-    longDescription: "The Media Team ensures that technology enhances our worship services and outreach. Team members operate audio equipment, create visual presentations, manage livestreams, and develop content for social media and the church website.",
+    name: "Equipo de Medios",
+    description: "Administra el sonido, la iluminación, las presentaciones y las plataformas en línea para los servicios y eventos de la iglesia.",
+    longDescription: "El Equipo de Medios asegura que la tecnología mejore nuestros servicios de adoración y alcance. Los miembros del equipo operan equipos de audio, crean presentaciones visuales, administran transmisiones en vivo y desarrollan contenido para redes sociales y el sitio web de la iglesia.",
     commitmentLevel: "High",
     teamSize: "8-12",
-    schedule: "Sundays plus special events, content creation throughout the week",
+    schedule: "Domingos más eventos especiales, creación de contenido durante la semana",
     contactName: "Michael Johnson",
     contactEmail: "michael@church.org",
     requirements: [
-      "Technical aptitude",
-      "Attention to detail",
-      "Ability to learn new systems"
+      "Aptitud técnica",
+      "Atención al detalle",
+      "Capacidad para aprender nuevos sistemas"
     ],
     recommendedTraits: {
       personalityTypes: ["C", "D", "I"],
@@ -996,19 +1018,19 @@ const defaultMinistries = [
   },
   {
     id: 7,
-    name: "Bible Study Leaders",
-    description: "Lead small groups in studying God's Word and applying it to daily life.",
-    longDescription: "Bible Study Leaders facilitate discussions and guide participants in understanding and applying Scripture. Leaders prepare lessons, encourage participation, and foster a supportive environment where members can grow spiritually and build relationships.",
+    name: "Líderes de Estudio Bíblico",
+    description: "Dirige grupos pequeños en el estudio de la Palabra de Dios y su aplicación a la vida diaria.",
+    longDescription: "Los Líderes de Estudio Bíblico facilitan discusiones y guían a los participantes en la comprensión y aplicación de las Escrituras. Los líderes preparan lecciones, fomentan la participación y crean un ambiente de apoyo donde los miembros pueden crecer espiritualmente y construir relaciones.",
     commitmentLevel: "High",
     teamSize: "15-20",
-    schedule: "Weekly meetings, preparation time",
+    schedule: "Reuniones semanales, tiempo de preparación",
     contactName: "Rebecca Williams",
     contactEmail: "rebecca@church.org",
     requirements: [
-      "Strong knowledge of Scripture",
-      "Leadership skills",
-      "Commitment to preparation",
-      "Minimum 1-year commitment"
+      "Conocimiento sólido de las Escrituras",
+      "Habilidades de liderazgo",
+      "Compromiso con la preparación",
+      "Compromiso mínimo de 1 año"
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I", "C"],
@@ -1020,19 +1042,19 @@ const defaultMinistries = [
   },
   {
     id: 8,
-    name: "Administration Support",
-    description: "Assist with behind-the-scenes operations that keep the church running smoothly.",
-    longDescription: "The Administration Support team helps with the practical aspects of church operations. Members assist with data entry, event coordination, schedule management, communications, and facility maintenance to ensure church programs run efficiently.",
+    name: "Apoyo Administrativo",
+    description: "Ayuda con las operaciones detrás de escena que mantienen a la iglesia funcionando sin problemas.",
+    longDescription: "El equipo de Apoyo Administrativo ayuda con los aspectos prácticos de las operaciones de la iglesia. Los miembros asisten con la entrada de datos, la coordinación de eventos, la gestión de horarios, las comunicaciones y el mantenimiento de instalaciones para garantizar que los programas de la iglesia funcionen eficientemente.",
     commitmentLevel: "Medium",
     teamSize: "5-8",
-    schedule: "Weekday hours, flexible scheduling available",
+    schedule: "Horas entre semana, horarios flexibles disponibles",
     contactName: "Thomas Wilson",
     contactEmail: "thomas@church.org",
     requirements: [
-      "Organizational skills",
-      "Attention to detail",
-      "Computer proficiency",
-      "Reliability"
+      "Habilidades organizativas",
+      "Atención al detalle",
+      "Dominio de la computadora",
+      "Confiabilidad"
     ],
     recommendedTraits: {
       personalityTypes: ["C", "S"],
@@ -1044,18 +1066,18 @@ const defaultMinistries = [
   },
   {
     id: 9,
-    name: "Missions Team",
-    description: "Support and participate in local and global mission efforts to spread the Gospel.",
-    longDescription: "The Missions Team coordinates our church's involvement in spreading the Gospel locally and around the world. Members plan mission trips, support missionaries, organize fundraising events, and develop partnerships with mission organizations.",
+    name: "Equipo de Misiones",
+    description: "Apoya y participa en esfuerzos misioneros locales y globales para difundir el Evangelio.",
+    longDescription: "El Equipo de Misiones coordina la participación de nuestra iglesia en la difusión del Evangelio localmente y en todo el mundo. Los miembros planifican viajes misioneros, apoyan a los misioneros, organizan eventos de recaudación de fondos y desarrollan asociaciones con organizaciones misioneras.",
     commitmentLevel: "Medium",
     teamSize: "10-15",
-    schedule: "Monthly meetings, occasional mission trips",
+    schedule: "Reuniones mensuales, viajes misioneros ocasionales",
     contactName: "Sarah Johnston",
     contactEmail: "sarah@church.org",
     requirements: [
-      "Heart for missions",
-      "Cultural sensitivity",
-      "Ability to participate in or support mission trips"
+      "Corazón para las misiones",
+      "Sensibilidad cultural",
+      "Capacidad para participar o apoyar viajes misioneros"
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I", "S"],
@@ -1067,19 +1089,19 @@ const defaultMinistries = [
   },
   {
     id: 10,
-    name: "Care Ministry",
-    description: "Provide practical and emotional support to members during times of need or crisis.",
-    longDescription: "The Care Ministry shows Christ's love by supporting people through difficult seasons. Team members visit the sick and elderly, prepare meals for families in crisis, provide transportation to appointments, and offer prayer and encouragement.",
+    name: "Ministerio de Cuidado",
+    description: "Proporciona apoyo práctico y emocional a los miembros durante tiempos de necesidad o crisis.",
+    longDescription: "El Ministerio de Cuidado muestra el amor de Cristo apoyando a las personas en temporadas difíciles. Los miembros del equipo visitan a los enfermos y ancianos, preparan comidas para familias en crisis, proporcionan transporte a citas y ofrecen oración y aliento.",
     commitmentLevel: "Medium",
     teamSize: "12-15",
-    schedule: "On-call basis, monthly team meetings",
+    schedule: "Base de guardia, reuniones mensuales del equipo",
     contactName: "Elizabeth Kim",
     contactEmail: "elizabeth@church.org",
     requirements: [
-      "Compassion",
-      "Good listening skills",
-      "Reliability",
-      "Valid driver's license (for some roles)"
+      "Compasión",
+      "Buenas habilidades para escuchar",
+      "Confiabilidad",
+      "Licencia de conducir válida (para algunos roles)"
     ],
     recommendedTraits: {
       personalityTypes: ["S", "C", "I"],
