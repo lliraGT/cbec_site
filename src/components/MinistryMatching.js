@@ -738,9 +738,9 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                         )}
                       </button>
                       
-                      <button className="mt-4 px-6 py-2 bg-[#8B2332] text-white rounded hover:bg-[#7a1e2b] transition-colors">
+                      {/*<button className="mt-4 px-6 py-2 bg-[#8B2332] text-white rounded hover:bg-[#7a1e2b] transition-colors">
                         Conectarme
-                      </button>
+                      </button>*/}
                     </div>
                   </div>
                   
@@ -767,12 +767,12 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
                                 </ul>
                               </div>
                               
-                              <div>
+                              {/*<div>
                                 <h5 className="text-sm font-medium text-gray-700">Contacto</h5>
                                 <p className="text-sm text-gray-600 mt-1">
                                   {ministry.contactName} • {ministry.contactEmail}
                                 </p>
-                              </div>
+                              </div>*/}
                             </div>
                           </div>
                         </div>
