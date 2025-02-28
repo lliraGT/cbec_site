@@ -21,10 +21,14 @@ export default function ResultadosPage() {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     userType: [],
-    completedTests: []
+    completedTests: [],
+    personalityTraits: [],
+    spiritualGifts: [],
+    skillCategories: [],
+    passionGroups: [],
+    passionTypes: []
   });
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -36,6 +40,106 @@ export default function ResultadosPage() {
     pasion: 'Pasión',
     experiencia: 'Experiencia'
   };
+
+  // Get predominant personality traits (D, I, S, C)
+  const getTopPersonalityTraits = (personalityResults) => {
+    if (!personalityResults) return [];
+    
+    return Object.entries(personalityResults)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 2)
+      .map(([type]) => type);
+  };
+
+  // Get top 5 spiritual gifts
+  const getTopDones = (donesResults) => {
+    if (!donesResults) return [];
+    
+    return Object.entries(donesResults)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([gift]) => gift);
+  };  
+
+  // Get top 3 skill categories
+  const getTopSkills = (skillsResults) => {
+    if (!skillsResults) return [];
+    
+    return Object.entries(skillsResults)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([category]) => category);
+  };
+
+  // Personality traits
+  const PERSONALITY_TRAITS = [
+    { value: 'D', label: 'D (Dominante)' },
+    { value: 'I', label: 'I (Influyente)' },
+    { value: 'S', label: 'S (Estable)' },
+    { value: 'C', label: 'C (Concienzudo)' }
+  ];
+
+  // Spiritual gifts
+  const SPIRITUAL_GIFTS = [
+    { value: 'evangelismo', label: 'Evangelismo' },
+    { value: 'liderazgo', label: 'Liderazgo' },
+    { value: 'misericordia', label: 'Misericordia' },
+    { value: 'administracion', label: 'Administración' },
+    { value: 'profecia', label: 'Profecía' },
+    { value: 'dar', label: 'Dar' },
+    { value: 'ensenanza', label: 'Enseñanza' },
+    { value: 'pastoreo', label: 'Pastoreo' },
+    { value: 'fe', label: 'Fe' },
+    { value: 'exhortacion', label: 'Exhortación' },
+    { value: 'servicio', label: 'Servicio' },
+    { value: 'ayuda', label: 'Ayuda' },
+    { value: 'sabiduria', label: 'Sabiduría' },
+    { value: 'conocimiento', label: 'Conocimiento' },
+    { value: 'hospitalidad', label: 'Hospitalidad' },
+    { value: 'discernimiento', label: 'Discernimiento' }
+  ];
+
+  // Skills categories
+  const SKILL_CATEGORIES = [
+    { value: 'R', label: 'R (Realista)' },
+    { value: 'I', label: 'I (Investigador)' },
+    { value: 'A', label: 'A (Artístico)' },
+    { value: 'S', label: 'S (Social)' },
+    { value: 'E', label: 'E (Emprendedor)' },
+    { value: 'C', label: 'C (Convencional)' }
+  ];
+
+  // Passion groups (sample - you'll need to determine the most common ones)
+  const PASSION_GROUPS = [
+    { value: 'Niños', label: 'Niños' },
+    { value: 'Jóvenes', label: 'Jóvenes' },
+    { value: 'Familias', label: 'Familias' },
+    { value: 'Ancianos', label: 'Ancianos' },
+    { value: 'Adictos', label: 'Personas con adicciones' },
+    { value: 'Indigentes', label: 'Personas sin hogar' },
+    { value: 'Extranjeros', label: 'Extranjeros' },
+    { value: 'Prisioneros', label: 'Prisioneros' }
+  ];
+
+  // Passion types
+  const PASSION_TYPES = [
+    { value: 'Desafiando', label: 'Desafiando' },
+    { value: 'Defendiendo', label: 'Defendiendo' },
+    { value: 'Delegando', label: 'Delegando' },
+    { value: 'Creando', label: 'Creando' },
+    { value: 'Mejorando', label: 'Mejorando' },
+    { value: 'Influyendo', label: 'Influyendo' },
+    { value: 'Liderando', label: 'Liderando' },
+    { value: 'Administrando', label: 'Administrando' },
+    { value: 'Organizando', label: 'Organizando' },
+    { value: 'Perfeccionando', label: 'Perfeccionando' },
+    { value: 'Protagonizando', label: 'Protagonizando' },
+    { value: 'Innovando', label: 'Innovando' },
+    { value: 'Reparando', label: 'Reparando' },
+    { value: 'Sirviendo', label: 'Sirviendo' },
+    { value: 'Socializando', label: 'Socializando' },
+    { value: 'Enseñando', label: 'Enseñando' }
+  ];
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -88,7 +192,7 @@ export default function ResultadosPage() {
   // Filtered and processed results
   const processedResults = useMemo(() => {
     let filtered = results;
-
+  
     // Search filter
     if (searchTerm) {
       const searchTermLower = searchTerm.toLowerCase();
@@ -97,14 +201,14 @@ export default function ResultadosPage() {
         result.email?.toLowerCase().includes(searchTermLower)
       );
     }
-
+  
     // User Type filter
     if (filters.userType.length > 0) {
       filtered = filtered.filter(result => 
         filters.userType.includes(result.userType || 'guest')
       );
     }
-
+  
     // Completed Tests filter
     if (filters.completedTests.length > 0) {
       filtered = filtered.filter(result => 
@@ -113,7 +217,54 @@ export default function ResultadosPage() {
         )
       );
     }
-
+  
+    // Personality Traits filter
+    if (filters.personalityTraits.length > 0) {
+      filtered = filtered.filter(result => {
+        if (!result.personalityResults) return false;
+        const topTraits = getTopPersonalityTraits(result.personalityResults);
+        return filters.personalityTraits.some(trait => topTraits.includes(trait));
+      });
+    }
+  
+    // Spiritual Gifts filter
+    if (filters.spiritualGifts.length > 0) {
+      filtered = filtered.filter(result => {
+        if (!result.donesResults) return false;
+        const topGifts = getTopDones(result.donesResults);
+        return filters.spiritualGifts.some(gift => topGifts.includes(gift));
+      });
+    }
+  
+    // Skills Categories filter
+    if (filters.skillCategories.length > 0) {
+      filtered = filtered.filter(result => {
+        if (!result.skillsResults) return false;
+        const topSkills = getTopSkills(result.skillsResults);
+        return filters.skillCategories.some(category => topSkills.includes(category));
+      });
+    }
+  
+    // Passion Groups filter
+    if (filters.passionGroups.length > 0) {
+      filtered = filtered.filter(result => {
+        if (!result.passionResults?.topFiveGroups) return false;
+        return filters.passionGroups.some(group => 
+          result.passionResults.topFiveGroups.includes(group)
+        );
+      });
+    }
+  
+    // Passion Types filter
+    if (filters.passionTypes.length > 0) {
+      filtered = filtered.filter(result => {
+        if (!result.passionResults?.topThreePassions) return false;
+        return filters.passionTypes.some(type => 
+          result.passionResults.topThreePassions.includes(type)
+        );
+      });
+    }
+  
     return filtered;
   }, [results, searchTerm, filters]);
 
@@ -142,10 +293,34 @@ export default function ResultadosPage() {
         ? currentFilter.filter(f => f !== value)
         : [...currentFilter, value];
       
-      return {
-        ...prev,
-        [filterType]: newFilter
-      };
+      // Clear other test-specific filters if they're incompatible with current selection
+      const updatedFilters = { ...prev, [filterType]: newFilter };
+      
+      // Auto-filter compatibility logic:
+      // When a specific test trait is selected, ensure the corresponding test is in completedTests
+      if (filterType === 'personalityTraits' && newFilter.length > 0) {
+        // Make sure 'personalidad' is in completedTests
+        if (!updatedFilters.completedTests.includes('personalidad')) {
+          updatedFilters.completedTests = [...updatedFilters.completedTests, 'personalidad'];
+        }
+      } else if (filterType === 'spiritualGifts' && newFilter.length > 0) {
+        // Make sure 'dones' is in completedTests
+        if (!updatedFilters.completedTests.includes('dones')) {
+          updatedFilters.completedTests = [...updatedFilters.completedTests, 'dones'];
+        }
+      } else if (filterType === 'skillCategories' && newFilter.length > 0) {
+        // Make sure 'habilidades' is in completedTests
+        if (!updatedFilters.completedTests.includes('habilidades')) {
+          updatedFilters.completedTests = [...updatedFilters.completedTests, 'habilidades'];
+        }
+      } else if ((filterType === 'passionGroups' || filterType === 'passionTypes') && newFilter.length > 0) {
+        // Make sure 'pasion' is in completedTests
+        if (!updatedFilters.completedTests.includes('pasion')) {
+          updatedFilters.completedTests = [...updatedFilters.completedTests, 'pasion'];
+        }
+      }
+      
+      return updatedFilters;
     });
   };
 
@@ -274,9 +449,29 @@ export default function ResultadosPage() {
                   )}
                 </button>
                 
+                {/* Enhanced Filter UI - Replace the existing filter panel with this */}
                 {isFilterOpen && (
-                  <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-md shadow-lg p-4 z-10">
-                    <div className="mb-4">
+                  <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg p-4 z-10 max-h-[80vh] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-bold text-gray-800">Filtros</h3>
+                      <button 
+                        onClick={() => setFilters({
+                          userType: [],
+                          completedTests: [],
+                          personalityTraits: [],
+                          spiritualGifts: [],
+                          skillCategories: [],
+                          passionGroups: [],
+                          passionTypes: []
+                        })}
+                        className="text-xs text-[#8B2332] hover:underline"
+                      >
+                        Limpiar filtros
+                      </button>
+                    </div>
+
+                    {/* User Type Filter */}
+                    <div className="mb-4 border-b pb-3">
                       <h3 className="text-sm font-semibold text-gray-700 mb-2">Tipo de Usuario</h3>
                       <div className="space-y-2">
                         <label className="flex items-center">
@@ -302,9 +497,10 @@ export default function ResultadosPage() {
                       </div>
                     </div>
 
-                    <div>
+                    {/* Tests Completados Filter */}
+                    <div className="mb-4 border-b pb-3">
                       <h3 className="text-sm font-semibold text-gray-700 mb-2">Tests Completados</h3>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {Object.entries(TEST_TYPES).map(([type, label]) => (
                           <label key={type} className="flex items-center">
                             <input
@@ -318,12 +514,258 @@ export default function ResultadosPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Personality Traits Filter */}
+                    <div className="mb-4 border-b pb-3">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Tipo de Personalidad</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {PERSONALITY_TRAITS.map((trait) => (
+                          <label key={trait.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.personalityTraits.includes(trait.value)}
+                              onChange={() => toggleFilter('personalityTraits', trait.value)}
+                              className="mr-2 text-[#8B2332] focus:ring-[#8B2332]"
+                              disabled={!filters.completedTests.includes('personalidad')}
+                            />
+                            <span className={`text-sm ${!filters.completedTests.includes('personalidad') ? 'text-gray-400' : 'text-gray-700'}`}>
+                              {trait.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Spiritual Gifts Filter */}
+                    <div className="mb-4 border-b pb-3">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Dones Espirituales</h3>
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {SPIRITUAL_GIFTS.map((gift) => (
+                          <label key={gift.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.spiritualGifts.includes(gift.value)}
+                              onChange={() => toggleFilter('spiritualGifts', gift.value)}
+                              className="mr-2 text-[#8B2332] focus:ring-[#8B2332]"
+                              disabled={!filters.completedTests.includes('dones')}
+                            />
+                            <span className={`text-sm ${!filters.completedTests.includes('dones') ? 'text-gray-400' : 'text-gray-700'}`}>
+                              {gift.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Skills Categories Filter */}
+                    <div className="mb-4 border-b pb-3">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Habilidades</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {SKILL_CATEGORIES.map((skill) => (
+                          <label key={skill.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.skillCategories.includes(skill.value)}
+                              onChange={() => toggleFilter('skillCategories', skill.value)}
+                              className="mr-2 text-[#8B2332] focus:ring-[#8B2332]"
+                              disabled={!filters.completedTests.includes('habilidades')}
+                            />
+                            <span className={`text-sm ${!filters.completedTests.includes('habilidades') ? 'text-gray-400' : 'text-gray-700'}`}>
+                              {skill.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Passion Groups Filter */}
+                    <div className="mb-4 border-b pb-3">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Grupos de Pasión</h3>
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {PASSION_GROUPS.map((group) => (
+                          <label key={group.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.passionGroups.includes(group.value)}
+                              onChange={() => toggleFilter('passionGroups', group.value)}
+                              className="mr-2 text-[#8B2332] focus:ring-[#8B2332]"
+                              disabled={!filters.completedTests.includes('pasion')}
+                            />
+                            <span className={`text-sm ${!filters.completedTests.includes('pasion') ? 'text-gray-400' : 'text-gray-700'}`}>
+                              {group.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Passion Types Filter */}
+                    <div className="mb-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Formas de Expresar Pasión</h3>
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {PASSION_TYPES.map((type) => (
+                          <label key={type.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={filters.passionTypes.includes(type.value)}
+                              onChange={() => toggleFilter('passionTypes', type.value)}
+                              className="mr-2 text-[#8B2332] focus:ring-[#8B2332]"
+                              disabled={!filters.completedTests.includes('pasion')}
+                            />
+                            <span className={`text-sm ${!filters.completedTests.includes('pasion') ? 'text-gray-400' : 'text-gray-700'}`}>
+                              {type.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Active Filters - Add this component before the results grid */}
+              {(filters.userType.length > 0 || 
+                filters.completedTests.length > 0 || 
+                filters.personalityTraits.length > 0 ||
+                filters.spiritualGifts.length > 0 ||
+                filters.skillCategories.length > 0 ||
+                filters.passionGroups.length > 0 ||
+                filters.passionTypes.length > 0) && (
+                <div className="mb-4 flex flex-wrap gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <span className="text-sm font-medium text-gray-700 mr-1">Filtros activos:</span>
+                  
+                  {/* User Type Filters */}
+                  {filters.userType.map(type => (
+                    <span 
+                      key={`type-${type}`}
+                      className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center"
+                    >
+                      {type === 'application' ? 'Aplicación' : 'Invitado'}
+                      <X 
+                        className="ml-1 h-3 w-3 cursor-pointer" 
+                        onClick={() => toggleFilter('userType', type)}
+                      />
+                    </span>
+                  ))}
+                  
+                  {/* Completed Tests Filters */}
+                  {filters.completedTests.map(test => (
+                    <span 
+                      key={`test-${test}`}
+                      className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs flex items-center"
+                    >
+                      {TEST_TYPES[test]}
+                      <X 
+                        className="ml-1 h-3 w-3 cursor-pointer" 
+                        onClick={() => toggleFilter('completedTests', test)}
+                      />
+                    </span>
+                  ))}
+                  
+                  {/* Personality Traits Filters */}
+                  {filters.personalityTraits.map(trait => {
+                    const traitData = PERSONALITY_TRAITS.find(t => t.value === trait);
+                    return (
+                      <span 
+                        key={`trait-${trait}`}
+                        className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs flex items-center"
+                      >
+                        {traitData?.label || trait}
+                        <X 
+                          className="ml-1 h-3 w-3 cursor-pointer" 
+                          onClick={() => toggleFilter('personalityTraits', trait)}
+                        />
+                      </span>
+                    );
+                  })}
+                  
+                  {/* Spiritual Gifts Filters */}
+                  {filters.spiritualGifts.map(gift => {
+                    const giftData = SPIRITUAL_GIFTS.find(g => g.value === gift);
+                    return (
+                      <span 
+                        key={`gift-${gift}`}
+                        className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs flex items-center"
+                      >
+                        {giftData?.label || gift}
+                        <X 
+                          className="ml-1 h-3 w-3 cursor-pointer" 
+                          onClick={() => toggleFilter('spiritualGifts', gift)}
+                        />
+                      </span>
+                    );
+                  })}
+                  
+                  {/* Skill Categories Filters */}
+                  {filters.skillCategories.map(skill => {
+                    const skillData = SKILL_CATEGORIES.find(s => s.value === skill);
+                    return (
+                      <span 
+                        key={`skill-${skill}`}
+                        className="px-2 py-1 bg-teal-100 text-teal-800 rounded-full text-xs flex items-center"
+                      >
+                        {skillData?.label || skill}
+                        <X 
+                          className="ml-1 h-3 w-3 cursor-pointer" 
+                          onClick={() => toggleFilter('skillCategories', skill)}
+                        />
+                      </span>
+                    );
+                  })}
+                  
+                  {/* Passion Groups Filters */}
+                  {filters.passionGroups.map(group => {
+                    const groupData = PASSION_GROUPS.find(g => g.value === group);
+                    return (
+                      <span 
+                        key={`group-${group}`}
+                        className="px-2 py-1 bg-pink-100 text-pink-800 rounded-full text-xs flex items-center"
+                      >
+                        {groupData?.label || group}
+                        <X 
+                          className="ml-1 h-3 w-3 cursor-pointer" 
+                          onClick={() => toggleFilter('passionGroups', group)}
+                        />
+                      </span>
+                    );
+                  })}
+                  
+                  {/* Passion Types Filters */}
+                  {filters.passionTypes.map(type => {
+                    const typeData = PASSION_TYPES.find(t => t.value === type);
+                    return (
+                      <span 
+                        key={`ptype-${type}`}
+                        className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs flex items-center"
+                      >
+                        {typeData?.label || type}
+                        <X 
+                          className="ml-1 h-3 w-3 cursor-pointer" 
+                          onClick={() => toggleFilter('passionTypes', type)}
+                        />
+                      </span>
+                    );
+                  })}
+                  
+                  <button 
+                    onClick={() => setFilters({
+                      userType: [],
+                      completedTests: [],
+                      personalityTraits: [],
+                      spiritualGifts: [],
+                      skillCategories: [],
+                      passionGroups: [],
+                      passionTypes: []
+                    })}
+                    className="ml-auto text-xs text-[#8B2332] hover:underline"
+                  >
+                    Limpiar todos
+                  </button>
+                </div>
+              )}
+              
               {/* Results Table */}
               <div className="lg:col-span-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="p-4 border-b bg-gray-50">
