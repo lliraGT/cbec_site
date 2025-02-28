@@ -28,6 +28,7 @@ export default function ResultadosPage() {
     passionGroups: [],
     passionTypes: []
   });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   const { data: session, status } = useSession();
   const router = useRouter();
