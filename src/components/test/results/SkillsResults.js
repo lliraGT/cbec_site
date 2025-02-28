@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
-  LineChart,  // Add this
-  Line,       // Add this
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -104,18 +104,19 @@ const SkillsResults = ({ skillResults }) => {
     }
   };
 
-  // Replace the existing chartData transformation with this:
-    const categoryOrder = ['R', 'I', 'A', 'S', 'E', 'C']; // Define the correct order
+  // Fix: Sort skills by their actual score values
+  const sortedSkills = Object.entries(skillResults)
+    .sort(([, a], [, b]) => b - a);
 
-    // Transform results for chart
-    const chartData = categoryOrder.map(category => ({
-        name: categoryInfo[category].name,
-        value: skillResults[category],
-        category
-    }));
+  // Transform results for chart - use the proper sorted order
+  const chartData = sortedSkills.map(([category, value]) => ({
+    name: categoryInfo[category]?.name || category,
+    value: value,
+    category
+  }));
 
-  // Get top 3 categories
-  const topCategories = chartData.slice(0, 3);
+  // Get top 3 categories based on scores
+  const topCategories = sortedSkills.slice(0, 3).map(([category]) => category);
 
   return (
     <div className="max-w-[90rem] mx-auto space-y-8 px-4">
@@ -127,7 +128,7 @@ const SkillsResults = ({ skillResults }) => {
         <div className="grid md:grid-cols-3 gap-6">
           {topCategories.map((category, index) => (
             <div 
-              key={category.category}
+              key={category}
               className="p-6 border rounded-lg bg-gray-50"
             >
               <div className="flex items-center gap-4 mb-3">
@@ -135,11 +136,11 @@ const SkillsResults = ({ skillResults }) => {
                   {index + 1}
                 </span>
                 <h3 className="text-lg font-semibold text-[#8B2332]">
-                  {category.name}
+                  {categoryInfo[category].name}
                 </h3>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
-                {categoryInfo[category.category].description}
+                {categoryInfo[category].description}
               </p>
             </div>
           ))}
