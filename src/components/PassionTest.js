@@ -183,8 +183,10 @@ export default function PassionTest({ isOpen, onClose, onComplete, user }) {
       setIsSubmitting(true);
       setError(null);
   
-      if (!userId) {
-        return { error: 'Missing required fields: userId' };
+      // Fixed: Use user.id instead of undefined userId
+      if (!user?.id) {
+        setError('User ID is required');
+        return;
       }
   
       // Prepare results data
@@ -237,7 +239,7 @@ export default function PassionTest({ isOpen, onClose, onComplete, user }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
+          userId: user.id, // Fixed: Use user.id here
           testType: 'passion',
           results
         }),
