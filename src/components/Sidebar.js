@@ -7,38 +7,50 @@ import { useSession } from 'next-auth/react';
 export default function Sidebar({ isOpen }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const [descubreOpen, setDescubreOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Define authorized roles for MCI access
   const MCI_AUTHORIZED_ROLES = ['admin', 'elder', 'staff'];
   const SETTINGS_AUTHORIZED_ROLES = ['admin', 'staff'];
+  const DESCUBRE_AUTHORIZED_ROLES = ['admin', 'elder', 'staff', 'user'];
 
-  // Check if user has permission to see MCI
+  // Check user permissions
   const canAccessMCI = session?.user?.role && MCI_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
   const canAccessSettings = session?.user?.role && SETTINGS_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
+  const canAccessDescubre = session?.user?.role && DESCUBRE_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
 
-  // Base menu items that everyone can see
+  // Base menu items
   const baseMenuItems = [
     { title: 'Home', path: '/dashboard', icon: '🏠' },
-    { title: 'Dones', path: '/dashboard/dones', icon: '✅' },
   ];
 
-  // MCI menu item only for authorized roles
+  // Conditional menu items
   const mciMenuItem = { title: 'MCI', path: '/dashboard/mci', icon: '📈' };
-
-  // Settings submenu items
+  const descubreMenuItems = [
+    { title: 'Dones', path: '/dashboard/descubre/dones', icon: '✅' },
+    { title: 'Resultados', path: '/dashboard/descubre/resultados', icon: '📊' }
+  ];
   const settingsItems = [
     { title: 'Invite Users', path: '/dashboard/settings/invite', icon: '📧' },
     { title: 'Users', path: '/dashboard/settings/users', icon: '👥' },
   ];
 
   // Combine menu items based on permissions
-  const menuItems = canAccessMCI 
-    ? [...baseMenuItems.slice(0, 1), mciMenuItem, ...baseMenuItems.slice(1)]
-    : baseMenuItems;
-
-  // Check if current path is under settings
-  const isSettingsPath = router.pathname.startsWith('/dashboard/settings');
+  const menuItems = [
+    ...baseMenuItems,
+    ...(canAccessMCI ? [mciMenuItem] : []),
+    { 
+      title: 'Descubre', 
+      icon: '🔍', 
+      submenu: canAccessDescubre ? descubreMenuItems : [] 
+    },
+    { 
+      title: 'Settings', 
+      icon: '⚙️', 
+      submenu: canAccessSettings ? settingsItems : [] 
+    }
+  ];
 
   return (
     <>
@@ -59,55 +71,84 @@ export default function Sidebar({ isOpen }) {
         <nav className="mt-8">
           <ul className="space-y-2">
             {menuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  href={item.path}
-                  className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
-                    router.pathname === item.path ? 'bg-gray-100' : ''
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.title}
-                </Link>
+              <li key={item.title}>
+                {item.submenu ? (
+                  // Submenu handling
+                  <>
+                    <button
+                      onClick={() => {
+                        if (item.title === 'Descubre') setDescubreOpen(!descubreOpen);
+                        if (item.title === 'Settings') setSettingsOpen(!settingsOpen);
+                      }}
+                      className={`w-full flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
+                        router.pathname.startsWith(item.title === 'Descubre' ? '/dashboard/descubre' : '/dashboard/settings') 
+                          ? 'bg-gray-100' 
+                          : ''
+                      }`}
+                    >
+                      <span className="mr-3">{item.icon}</span>
+                      {item.title}
+                      <span className={`ml-auto transform transition-transform duration-200 ${
+                        item.title === 'Descubre' 
+                          ? (descubreOpen ? 'rotate-180' : '') 
+                          : (settingsOpen ? 'rotate-180' : '')
+                      }`}>
+                        ▼
+                      </span>
+                    </button>
+
+                    {/* Submenu for Descubre */}
+                    {item.title === 'Descubre' && (
+                      <ul className={`mt-2 ${descubreOpen ? 'block' : 'hidden'}`}>
+                        {item.submenu.map((subitem) => (
+                          <li key={subitem.path}>
+                            <Link
+                              href={subitem.path}
+                              className={`flex items-center pl-12 pr-6 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
+                                router.pathname === subitem.path ? 'bg-gray-100' : ''
+                              }`}
+                            >
+                              <span className="mr-3">{subitem.icon}</span>
+                              {subitem.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Submenu for Settings */}
+                    {item.title === 'Settings' && (
+                      <ul className={`mt-2 ${settingsOpen ? 'block' : 'hidden'}`}>
+                        {item.submenu.map((subitem) => (
+                          <li key={subitem.path}>
+                            <Link
+                              href={subitem.path}
+                              className={`flex items-center pl-12 pr-6 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
+                                router.pathname === subitem.path ? 'bg-gray-100' : ''
+                              }`}
+                            >
+                              <span className="mr-3">{subitem.icon}</span>
+                              {subitem.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  // Regular menu item
+                  <Link
+                    href={item.path}
+                    className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
+                      router.pathname === item.path ? 'bg-gray-100' : ''
+                    }`}
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    {item.title}
+                  </Link>
+                )}
               </li>
             ))}
-
-            {/* Settings Menu with Submenu */}
-            {canAccessSettings && (
-              <li>
-                <button
-                  onClick={() => setSettingsOpen(!settingsOpen)}
-                  className={`w-full flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
-                    isSettingsPath ? 'bg-gray-100' : ''
-                  }`}
-                >
-                  <span className="mr-3">⚙️</span>
-                  Settings
-                  <span className={`ml-auto transform transition-transform duration-200 ${
-                    settingsOpen ? 'rotate-180' : ''
-                  }`}>
-                    ▼
-                  </span>
-                </button>
-
-                {/* Settings Submenu */}
-                <ul className={`mt-2 ${settingsOpen ? 'block' : 'hidden'}`}>
-                  {settingsItems.map((item) => (
-                    <li key={item.path}>
-                      <Link
-                        href={item.path}
-                        className={`flex items-center pl-12 pr-6 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
-                          router.pathname === item.path ? 'bg-gray-100' : ''
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon}</span>
-                        {item.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            )}
           </ul>
         </nav>
       </div>
