@@ -14,7 +14,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { token, testType, results } = req.body;
+  const { token, testType, results, firstName, lastName } = req.body;
+
+  // Debug
+  console.log('API received data:', { token, testType, firstName, lastName });
+  console.log('Results data:', JSON.stringify(results).substring(0, 200) + '...');
 
   if (!token || !testType || !results) {
     return res.status(400).json({ error: 'Token, test type, and results are required' });
@@ -56,22 +60,50 @@ export default async function handler(req, res) {
 
     // Check if a testResults document already exists for this invitation
     const existingResults = await client.fetch(
-      `*[_type == "testResults" && invitationToken == $token][0]`,
+      `*[_type == "testResults" && invitationToken == $token][0]{
+        _id,
+        firstName,
+        lastName
+      }`,
       { token }
     );
 
+    // Debug
+    console.log('Existing results found:', existingResults ? 'Yes' : 'No');
     if (existingResults) {
-      // Update existing results
-      await client
+      console.log('Existing first/last name:', existingResults.firstName, existingResults.lastName);
+    }
+
+    if (existingResults) {
+      // Debug field that will be updated
+      console.log('Updating field:', resultField, 'in document:', existingResults._id);
+      
+      // Update existing results with new data for this test
+      const updateData = {
+        [resultField]: results,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Always update first and last name if provided
+      if (firstName) {
+        updateData.firstName = firstName;
+        console.log('Setting firstName to:', firstName);
+      }
+      
+      if (lastName) {
+        updateData.lastName = lastName;
+        console.log('Setting lastName to:', lastName);
+      }
+      
+      const updated = await client
         .patch(existingResults._id)
-        .set({
-          [resultField]: results,
-          updatedAt: new Date().toISOString()
-        })
+        .set(updateData)
         .commit();
+        
+      console.log('Update successful, document id:', updated._id);
     } else {
-      // Create new results document
-      await client.create({
+      // Create new results document with all available data
+      const newDoc = {
         _type: 'testResults',
         invitationToken: token,
         invitation: {
@@ -81,12 +113,26 @@ export default async function handler(req, res) {
         [resultField]: results,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+      
+      // Add first and last name if provided
+      if (firstName) {
+        newDoc.firstName = firstName;
+        console.log('Creating with firstName:', firstName);
+      }
+      
+      if (lastName) {
+        newDoc.lastName = lastName;
+        console.log('Creating with lastName:', lastName);
+      }
+      
+      const created = await client.create(newDoc);
+      console.log('Created new document with id:', created._id);
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Save test results error:', error);
-    return res.status(500).json({ error: 'Failed to save test results' });
+    return res.status(500).json({ error: 'Failed to save test results: ' + error.message });
   }
 }

@@ -33,6 +33,27 @@ export default function TestsPage() {
   useEffect(() => {
     if (!token) return;
 
+    // Get user info from session storage (set in welcome page)
+    const getUserInfo = () => {
+      if (typeof window !== 'undefined') {
+        const storedUserInfo = sessionStorage.getItem('guestUserInfo');
+        if (storedUserInfo) {
+          try {
+            return JSON.parse(storedUserInfo);
+          } catch (error) {
+            console.error('Error parsing user info from session storage:', error);
+          }
+        }
+        // If no user info found, redirect to welcome page
+        router.push(`/tests-welcome?token=${token}`);
+        return null;
+      }
+      return null;
+    };
+
+    const userInfo = getUserInfo();
+    if (!userInfo) return;
+
     const verifyToken = async () => {
       try {
         setIsLoading(true);
@@ -51,13 +72,24 @@ export default function TestsPage() {
           setAvailableTests(data.invitation.tests || []);
           setUserData({
             id: data.invitation._id,
-            name: 'Guest User',
+            name: `${userInfo.firstName} ${userInfo.lastName}`,
             email: data.invitation.email
           });
           
           // Load existing results if any
           if (data.results) {
-            setTestResults(data.results);
+            // Make sure to set proper structure for the results
+            // This will make sure we have the right fields for each test type
+            setTestResults({
+              personalidad: data.results.personalidad || null,
+              dones: data.results.dones || null,
+              habilidades: data.results.habilidades || null,
+              pasion: data.results.pasion || null,
+              experiencia: data.results.experiencia || null
+            });
+            
+            // Debug the results
+            console.log("Loaded test results:", data.results);
           }
         } else {
           setError(data.error || 'Invalid or expired invitation');
@@ -71,14 +103,30 @@ export default function TestsPage() {
     };
 
     verifyToken();
-  }, [token]);
+  }, [token, router]);
 
   const handleStartTest = (testType) => {
     setCurrentTest(testType);
   };
 
-  const handleTestComplete = async (results, testType) => {
+  const handleTestComplete = async (results) => {
     try {
+      // Get user info from session storage
+      const userInfo = sessionStorage.getItem('guestUserInfo');
+      let firstName = '';
+      let lastName = '';
+      
+      if (userInfo) {
+        try {
+          const parsedInfo = JSON.parse(userInfo);
+          firstName = parsedInfo.firstName || '';
+          lastName = parsedInfo.lastName || '';
+          console.log('Using user info for test completion:', { firstName, lastName });
+        } catch (error) {
+          console.error('Error parsing user info from session storage:', error);
+        }
+      }
+      
       // Save the test results
       const response = await fetch('/api/save-test-results', {
         method: 'POST',
@@ -87,19 +135,24 @@ export default function TestsPage() {
         },
         body: JSON.stringify({
           token,
-          testType,
-          results
+          testType: currentTest,
+          results,
+          firstName,
+          lastName
         }),
       });
+
+      const responseData = await response.json();
+      console.log('Save test results response:', responseData);
 
       if (response.ok) {
         // Update local state with new results
         setTestResults(prev => ({
           ...prev,
-          [testType]: results
+          [currentTest]: results
         }));
       } else {
-        console.error('Failed to save test results');
+        console.error('Failed to save test results:', responseData.error);
       }
     } catch (error) {
       console.error('Error saving test results:', error);
@@ -192,7 +245,7 @@ export default function TestsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-center items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Image
               src="/images/logo.png"
@@ -203,14 +256,18 @@ export default function TestsPage() {
             />
             <h1 className="text-2xl font-bold text-[#8B2332]">Descubre</h1>
           </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900">{userData.name}</p>
+            <p className="text-xs text-gray-600">{userData.email}</p>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido a tu jornada de descubrimiento</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido(a) a tu jornada de descubrimiento</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Has sido invitado a completar los siguientes tests que te ayudarán a descubrir 
+            Has sido invitado(a) a completar los siguientes tests que te ayudarán a descubrir 
             tus dones espirituales, personalidad, habilidades y pasiones.
           </p>
         </div>
@@ -278,12 +335,20 @@ export default function TestsPage() {
                         </button>
                       </div>
                       <div className="p-4">
-                        <ResultsComponent 
-                          results={testResults[currentTest]} 
-                          // For DonesResults, we need both gift results and personality results
-                          {... (currentTest === 'dones' && testResults.personalidad) ? 
-                            { personalityResults: testResults.personalidad } : {}}
-                        />
+                        {currentTest === 'dones' ? (
+                          <DonesResults 
+                            giftResults={testResults.dones} 
+                            personalityResults={testResults.personalidad || {}}
+                          />
+                        ) : currentTest === 'habilidades' ? (
+                          <SkillsResults 
+                            skillResults={testResults.habilidades} 
+                          />
+                        ) : (
+                          <ResultsComponent 
+                            results={testResults[currentTest]} 
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -296,7 +361,7 @@ export default function TestsPage() {
               <TestComponent
                 isOpen={true}
                 onClose={() => setCurrentTest(null)}
-                onComplete={(results) => handleTestComplete(results, currentTest)}
+                onComplete={handleTestComplete}
                 user={userData}
               />
             );

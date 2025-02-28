@@ -53,8 +53,8 @@ export default async function handler(req, res) {
       }
     });
 
-    // Generate invitation URL
-    const inviteUrl = `${process.env.NEXTAUTH_URL}/tests?token=${token}`;
+    // Generate invitation URL - now pointing to the welcome page
+    const inviteUrl = `${process.env.NEXTAUTH_URL}/tests-welcome?token=${token}`;
 
     // Format test names for email
     const testNames = {
