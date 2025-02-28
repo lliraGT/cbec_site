@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Comprehensive query to fetch test results from multiple sources
+    // Comprehensive query to fetch test results from guest users - simplified to avoid syntax errors
     const guestResults = await client.fetch(`
       *[_type == "testResults"] {
         _id,
@@ -36,13 +36,7 @@ export default async function handler(req, res) {
         lastName,
         "email": invitation->email,
         "userType": "guest",
-        "completedTests": [
-          personalityResults != null ? "personalidad" : null,
-          donesResults != null ? "dones" : null,
-          skillsResults != null ? "habilidades" : null,
-          passionResults != null ? "pasion" : null,
-          experienceResults != null ? "experiencia" : null
-        ][@ != null],
+        "completedTests": [],
         personalityResults,
         donesResults,
         skillsResults,
@@ -51,19 +45,32 @@ export default async function handler(req, res) {
         createdAt
       } | order(createdAt desc)
     `);
+    
+    // Fix the completedTests array for each result
+    const processedGuestResults = guestResults.map(result => {
+      const completedTests = [];
+      if (result.personalityResults) completedTests.push("personalidad");
+      if (result.donesResults) completedTests.push("dones");
+      if (result.skillsResults) completedTests.push("habilidades");
+      if (result.passionResults) completedTests.push("pasion");
+      if (result.experienceResults) completedTests.push("experiencia");
+      
+      return {
+        ...result,
+        completedTests
+      };
+    });
 
-    // Fetch user progress results for logged-in users
+    // Fetch user progress results for logged-in users - simplified query
     const userProgressResults = await client.fetch(`
       *[_type == "userProgress"] {
         _id,
         "user": user->,
-        "completedTests": [
-          personalityTestCompleted == true ? "personalidad" : null,
-          donesTestCompleted == true ? "dones" : null,
-          skillsTestCompleted == true ? "habilidades" : null,
-          passionTestCompleted == true ? "pasion" : null,
-          experienceTestCompleted == true ? "experiencia" : null
-        ][@ != null],
+        personalityTestCompleted,
+        donesTestCompleted,
+        skillsTestCompleted,
+        passionTestCompleted,
+        experienceTestCompleted,
         personalityTestResults,
         donesTestResults,
         skillsTestResults,
@@ -72,24 +79,35 @@ export default async function handler(req, res) {
       }
     `);
 
-    // Combine and process results
-    const processedUserProgressResults = userProgressResults.map(result => ({
-      _id: result._id,
-      firstName: result.user?.name || 'Usuario',
-      lastName: '',
-      email: result.user?.email || '',
-      userType: 'application',
-      completedTests: result.completedTests,
-      personalityResults: result.personalityTestResults,
-      donesResults: result.donesTestResults,
-      skillsResults: result.skillsTestResults,
-      passionResults: result.passionTestResults,
-      experienceResults: result.experienceTestResults
-    }));
+    // Process and format user progress results to match the guest results format
+    const processedUserProgressResults = userProgressResults.map(result => {
+      const completedTests = [];
+      if (result.personalityTestCompleted) completedTests.push("personalidad");
+      if (result.donesTestCompleted) completedTests.push("dones");
+      if (result.skillsTestCompleted) completedTests.push("habilidades");
+      if (result.passionTestCompleted) completedTests.push("pasion");
+      if (result.experienceTestCompleted) completedTests.push("experiencia");
+      
+      const nameParts = result.user?.name?.split(' ') || ['Usuario'];
+      
+      return {
+        _id: result._id,
+        firstName: nameParts[0],
+        lastName: nameParts.slice(1).join(' '),
+        email: result.user?.email || '',
+        userType: 'application',
+        completedTests,
+        personalityResults: result.personalityTestResults || null,
+        donesResults: result.donesTestResults || null,
+        skillsResults: result.skillsTestResults || null,
+        passionResults: result.passionTestResults || null,
+        experienceResults: result.experienceTestResults || null
+      };
+    });
 
     // Combine guest and user progress results
     const combinedResults = [
-      ...guestResults,
+      ...processedGuestResults,
       ...processedUserProgressResults
     ];
 

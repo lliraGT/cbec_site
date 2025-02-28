@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import TopBar from '@/components/TopBar';
 import Sidebar from '@/components/Sidebar';
-import { Search, Filter, Users, UserCheck } from 'lucide-react';
+import { Search, Filter, Users, UserCheck, X } from 'lucide-react';
 import PersonalityResults from '@/components/test/results/PersonalityResults';
 import DonesResults from '@/components/test/results/DonesResults';
 import SkillsResults from '@/components/test/results/SkillsResults';
@@ -53,16 +53,28 @@ export default function ResultadosPage() {
           }
         });
         
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        // Try to parse the response even if it's not ok
+        const data = await response.json().catch(e => {
+          console.error('Error parsing JSON:', e);
+          return [];
+        });
+        
+        if (Array.isArray(data)) {
+          setResults(data);
+          setError(null);
+        } else if (data.error) {
+          console.warn('API returned error:', data.error);
+          // Don't set error if we still have data
+          if (!data.length) {
+            setError(data.error);
+          }
         }
-
-        const data = await response.json();
-        setResults(data);
       } catch (err) {
         console.error('Detailed error fetching results:', err);
-        setError(`Failed to fetch results: ${err.message}`);
+        // Don't update error state if we already have results displayed
+        if (results.length === 0) {
+          setError(`Failed to fetch results: ${err.message}`);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +94,7 @@ export default function ResultadosPage() {
       const searchTermLower = searchTerm.toLowerCase();
       filtered = filtered.filter(result => 
         `${result.firstName} ${result.lastName}`.toLowerCase().includes(searchTermLower) ||
-        result.email.toLowerCase().includes(searchTermLower)
+        result.email?.toLowerCase().includes(searchTermLower)
       );
     }
 
@@ -97,7 +109,7 @@ export default function ResultadosPage() {
     if (filters.completedTests.length > 0) {
       filtered = filtered.filter(result => 
         filters.completedTests.every(test => 
-          result.completedTests.includes(test)
+          result.completedTests?.includes(test)
         )
       );
     }
@@ -111,7 +123,12 @@ export default function ResultadosPage() {
 
   const handleResultSelect = (result) => {
     setSelectedResult(result);
-    setSelectedTest(null);
+    // If the result has completed tests, select the first one by default
+    if (result.completedTests && result.completedTests.length > 0) {
+      setSelectedTest(result.completedTests[0]);
+    } else {
+      setSelectedTest(null);
+    }
   };
 
   const handleTestSelect = (testType) => {
@@ -133,14 +150,72 @@ export default function ResultadosPage() {
   };
 
   const renderTestBadges = (completedTests) => {
+    if (!completedTests || !Array.isArray(completedTests)) return null;
+    
     return completedTests.map(test => (
       <span
         key={test}
         className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 mr-1"
       >
-        {TEST_TYPES[test]}
+        {TEST_TYPES[test] || test}
       </span>
     ));
+  };
+
+  // Function to get the appropriate result data based on the test type
+  const getResultDataForTest = (result, testType) => {
+    if (!result) return null;
+    
+    switch (testType) {
+      case 'personalidad':
+        return result.personalityResults;
+      case 'dones':
+        return result.donesResults;
+      case 'habilidades':
+        return result.skillsResults;
+      case 'pasion':
+        return result.passionResults;
+      case 'experiencia':
+        return result.experienceResults;
+      default:
+        return null;
+    }
+  };
+
+  // Function to render the appropriate test results component
+  const renderTestResults = () => {
+    if (!selectedResult || !selectedTest) return null;
+    
+    const resultData = getResultDataForTest(selectedResult, selectedTest);
+    
+    if (!resultData) {
+      return (
+        <div className="p-8 text-center">
+          <p className="text-gray-500">No hay datos disponibles para este test.</p>
+        </div>
+      );
+    }
+    
+    switch (selectedTest) {
+      case 'personalidad':
+        return <PersonalityResults results={resultData} />;
+      case 'dones':
+        // Pass both dones results and personality results if available
+        return (
+          <DonesResults 
+            giftResults={resultData || {}} 
+            personalityResults={selectedResult.personalityResults || {}}
+          />
+        );
+      case 'habilidades':
+        return <SkillsResults skillResults={resultData} />;
+      case 'pasion':
+        return <PassionResults results={resultData} />;
+      case 'experiencia':
+        return <ExperienceResults results={resultData} />;
+      default:
+        return null;
+    }
   };
 
   if (status === "loading" || isLoading) {
@@ -161,11 +236,17 @@ export default function ResultadosPage() {
       
       <main className={`pt-16 min-h-screen ${sidebarOpen ? 'ml-64' : ''} transition-margin duration-300`}>
         <div className="p-8">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <h1 className="text-2xl font-semibold text-burgundy-700 mb-8">Resultados de Tests</h1>
             
+            {error && results.length === 0 && (
+              <div className="mb-4 bg-red-50 border border-red-300 text-red-700 p-4 rounded-md">
+                {error}
+              </div>
+            )}
+            
             {/* Search and Filter Bar */}
-            <div className="mb-6 flex space-x-4">
+            <div className="mb-6 flex flex-wrap gap-4">
               <div className="flex-grow relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400" />
@@ -175,7 +256,7 @@ export default function ResultadosPage() {
                   placeholder="Buscar por nombre o email"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#8B2332] focus:border-[#8B2332] sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-[#8B2332] focus:border-[#8B2332] sm:text-sm"
                 />
               </div>
               
@@ -242,48 +323,124 @@ export default function ResultadosPage() {
               </div>
             </div>
 
-            {/* Results Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Usuario</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tests Completados</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {processedResults.map((result) => (
-                    <tr 
-                      key={result._id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleResultSelect(result)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {result.firstName} {result.lastName}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Results Table */}
+              <div className="lg:col-span-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="p-4 border-b bg-gray-50">
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Usuarios ({processedResults.length})
+                  </h2>
+                </div>
+                <div className="overflow-auto max-h-[calc(100vh-280px)]">
+                  {processedResults.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      {searchTerm || filters.userType.length > 0 || filters.completedTests.length > 0
+                        ? 'No se encontraron resultados con los filtros actuales.'
+                        : 'No hay resultados disponibles.'}
+                    </div>
+                  ) : (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tests</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {processedResults.map((result) => (
+                          <tr 
+                            key={result._id} 
+                            className={`hover:bg-gray-50 cursor-pointer ${selectedResult?._id === result._id ? 'bg-gray-100' : ''}`}
+                            onClick={() => handleResultSelect(result)}
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {result.firstName} {result.lastName}
+                              </div>
+                              <div className="text-xs text-gray-500">{result.email}</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                result.userType === 'application' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {result.userType === 'application' ? 'Aplicación' : 'Invitado'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-wrap gap-1">
+                                {renderTestBadges(result.completedTests)}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+              
+              {/* Test Results */}
+              <div className="lg:col-span-2">
+                {selectedResult ? (
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm h-full">
+                    <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                      <div>
+                        <h2 className="text-lg font-medium text-gray-900">
+                          {selectedResult.firstName} {selectedResult.lastName}
+                        </h2>
+                        <p className="text-sm text-gray-500">{selectedResult.email}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-1">
+                          {selectedResult.completedTests?.map(testType => (
+                            <button 
+                              key={testType}
+                              onClick={() => handleTestSelect(testType)}
+                              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                selectedTest === testType
+                                  ? 'bg-[#8B2332] text-white'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }`}
+                            >
+                              {TEST_TYPES[testType]}
+                            </button>
+                          ))}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {result.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          result.userType === 'application' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {result.userType === 'application' ? 'Aplicación' : 'Invitado'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {renderTestBadges(result.completedTests)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        
+                        <button 
+                          onClick={() => setSelectedResult(null)}
+                          className="p-1 hover:bg-gray-200 rounded-full"
+                        >
+                          <X className="h-5 w-5 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 overflow-auto max-h-[calc(100vh-280px)]">
+                      {selectedTest ? (
+                        renderTestResults()
+                      ) : (
+                        <div className="p-8 text-center">
+                          <p className="text-gray-500">
+                            {selectedResult.completedTests?.length > 0
+                              ? 'Selecciona un test para ver los resultados.'
+                              : 'No hay tests completados para este usuario.'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm flex items-center justify-center h-full">
+                    <div className="p-8 text-center">
+                      <p className="text-gray-500">Selecciona un usuario para ver sus resultados.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
