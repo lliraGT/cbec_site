@@ -146,7 +146,49 @@ const SkillsTest = ({ isOpen, onClose, onComplete, user }) => {
       setIsSubmitting(true);
       setError(null);
   
+      if (!user?.id) {
+        setError('User ID is required');
+        return;
+      }
+  
       const results = calculateResults();
+      
+      // Check if we're in a guest context (testing through invitation)
+      if (window.location.pathname.startsWith('/tests')) {
+        // This is a guest taking a test through an invitation
+        const token = new URLSearchParams(window.location.search).get('token');
+        
+        if (!token) {
+          throw new Error('Missing invitation token');
+        }
+  
+        console.log('Guest test completion - using save-test-results API with token:', token);
+        
+        const response = await fetch('/api/save-test-results', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            testType: 'habilidades',
+            results
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save test results');
+        }
+        
+        if (onComplete) {
+          onComplete(results);
+        }
+        onClose();
+        return;
+      }
+  
+      // Regular user path
       const response = await updateSkillsTest(user.id, results);
   
       if (response.error) {

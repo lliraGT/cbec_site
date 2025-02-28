@@ -1,4 +1,5 @@
 // pages/dones.js
+// At the top of src/pages/dashboard/dones.js
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -15,7 +16,7 @@ import PassionTest from '@/components/PassionTest';
 import PassionResults from '@/components/test/results/PassionResults';
 import ExperienceTest from '@/components/ExperienceTest';
 import ExperienceResults from '@/components/test/results/ExperienceResults';
-import EmailInvite from '@/components/EmailInvite';
+import TestInvitationForm from '@/components/TestInvitationForm';
 import DonesTestList from '@/components/DonesTestList';
 import GlobalResultsOverview from '@/components/GlobalResultsOverview';
 import PrintableResultsSheet from '@/components/PrintableResultsSheet';
@@ -404,14 +405,9 @@ export default function DonesPage() {
             {/* Invite Modal */}
             {isInviteModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                    Send Invite
-                  </h2>
-                  <EmailInvite
-                    onClose={() => setIsInviteModalOpen(false)}
-                  />
-                </div>
+                <TestInvitationForm
+                  onClose={() => setIsInviteModalOpen(false)}
+                />
               </div>
             )}
           </div>

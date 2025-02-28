@@ -311,7 +311,6 @@ const PersonalityTest = ({ isOpen, onClose, onComplete, user }) => {
       setIsSubmitting(true);
       setError(null);
   
-      // Debug log the user object
       console.log('PersonalityTest user prop:', user);
   
       // Validate user object
@@ -323,18 +322,56 @@ const PersonalityTest = ({ isOpen, onClose, onComplete, user }) => {
       const results = calculateResults();
       console.log('Test results:', results);
       
-      const response = await updatePersonalityTest(user.id, results);
+      // Check if we're in a guest context (testing through invitation)
+      if (window.location.pathname.startsWith('/tests')) {
+        // This is a guest taking a test through an invitation
+        const token = new URLSearchParams(window.location.search).get('token');
+        
+        if (!token) {
+          throw new Error('Missing invitation token');
+        }
   
-      if (!response.error) {
+        console.log('Guest test completion - using save-test-results API with token:', token);
+        
+        const response = await fetch('/api/save-test-results', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            testType: 'personalidad',
+            results
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save test results');
+        }
+        
+        // Success path for guest test completion
         if (onComplete) {
-          onComplete();
+          onComplete(results);
         }
         onClose();
-      } else {
-        setError(response.error);
+        return;
       }
+      
+      // Regular user path - use the userProgress utility
+      const response = await updatePersonalityTest(user.id, results);
+  
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+  
+      if (onComplete) {
+        onComplete(results);
+      }
+      onClose();
     } catch (error) {
-      console.error('Error in handleTestCompletion:', error);
+      console.error('Error in handleTestComplete:', error);
       setError('Hubo un error al guardar los resultados. Por favor intenta de nuevo.');
     } finally {
       setIsSubmitting(false);

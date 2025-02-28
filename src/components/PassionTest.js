@@ -182,30 +182,71 @@ export default function PassionTest({ isOpen, onClose, onComplete, user }) {
     try {
       setIsSubmitting(true);
       setError(null);
-
+  
+      if (!userId) {
+        return { error: 'Missing required fields: userId' };
+      }
+  
+      // Prepare results data
       const results = {
         selectedGroups,
         topFiveGroups,
         selectedPassions,
         topThreePassions
       };
-
+      
+      // Check if we're in a guest context (testing through invitation)
+      if (window.location.pathname.startsWith('/tests')) {
+        // This is a guest taking a test through an invitation
+        const token = new URLSearchParams(window.location.search).get('token');
+        
+        if (!token) {
+          throw new Error('Missing invitation token');
+        }
+  
+        console.log('Guest test completion - using save-test-results API with token:', token);
+        
+        const response = await fetch('/api/save-test-results', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            testType: 'pasion',
+            results
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save test results');
+        }
+        
+        if (onComplete) {
+          onComplete(results);
+        }
+        onClose();
+        return;
+      }
+  
+      // Regular user path
       const response = await fetch('/api/user-progress/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId,
           testType: 'passion',
           results
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Error updating test progress');
       }
-
+  
       if (onComplete) {
         onComplete(results);
       }

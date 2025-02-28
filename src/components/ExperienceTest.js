@@ -218,8 +218,43 @@ const ExperienceTest = ({ isOpen, onClose, onComplete, user }) => {
         impactOnMinistry: answers.impactOnMinistry,
         topTwoExperiences: answers.topTwoExperiences
       };
+      
+      // Check if we're in a guest context (testing through invitation)
+      if (window.location.pathname.startsWith('/tests')) {
+        // This is a guest taking a test through an invitation
+        const token = new URLSearchParams(window.location.search).get('token');
+        
+        if (!token) {
+          throw new Error('Missing invitation token');
+        }
   
-      // Use the utility function from userProgress.js
+        console.log('Guest test completion - using save-test-results API with token:', token);
+        
+        const response = await fetch('/api/save-test-results', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            testType: 'experiencia',
+            results
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save test results');
+        }
+        
+        if (onComplete) {
+          onComplete(results);
+        }
+        onClose();
+        return;
+      }
+  
+      // Regular user path - use the utility function from userProgress.js
       const response = await updateExperienceTest(user.id, results);
   
       if (response.error) {
