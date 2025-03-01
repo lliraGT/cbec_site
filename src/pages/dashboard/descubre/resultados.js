@@ -10,6 +10,7 @@ import DonesResults from '@/components/test/results/DonesResults';
 import SkillsResults from '@/components/test/results/SkillsResults';
 import PassionResults from '@/components/test/results/PassionResults';
 import ExperienceResults from '@/components/test/results/ExperienceResults';
+import GlobalResultsOverview from '@/components/GlobalResultsOverview';
 
 export default function ResultadosPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -362,6 +363,26 @@ export default function ResultadosPage() {
   const renderTestResults = () => {
     if (!selectedResult || !selectedTest) return null;
     
+    // Special case for summary which doesn't use getResultDataForTest
+    if (selectedTest === 'summary') {
+      const userTests = transformResultsToUserTests(selectedResult);
+      
+      // Check if we have valid data for at least one test
+      const hasValidData = userTests.some(test => 
+        test.status === 'completado' && Object.keys(test.results || {}).length > 0
+      );
+      
+      if (!hasValidData) {
+        return (
+          <div className="p-8 text-center">
+            <p className="text-gray-500">No hay datos válidos disponibles para mostrar un resumen completo.</p>
+          </div>
+        );
+      }
+      
+      return <GlobalResultsOverview userTests={userTests} />;
+    }
+    
     const resultData = getResultDataForTest(selectedResult, selectedTest);
     
     if (!resultData) {
@@ -389,9 +410,51 @@ export default function ResultadosPage() {
         return <PassionResults results={resultData} />;
       case 'experiencia':
         return <ExperienceResults results={resultData} />;
+      // This case is now handled earlier in the function
       default:
         return null;
     }
+  };
+
+  // Function to transform selectedResult to userTests format for GlobalResultsOverview
+  const transformResultsToUserTests = (result) => {
+    if (!result) return [];
+    
+    const { personalityResults, donesResults, skillsResults, passionResults, experienceResults, completedTests } = result;
+    
+    return [
+      {
+        slug: 'personalidad',
+        name: 'Test de Personalidad',
+        // Only mark as completed if both in completedTests AND data exists
+        status: completedTests?.includes('personalidad') && personalityResults ? 'completado' : 'pendiente',
+        results: personalityResults || {}
+      },
+      {
+        slug: 'dones',
+        name: 'Test de Dones',
+        status: completedTests?.includes('dones') && donesResults ? 'completado' : 'pendiente',
+        results: donesResults || {}
+      },
+      {
+        slug: 'habilidades',
+        name: 'Test de Habilidades',
+        status: completedTests?.includes('habilidades') && skillsResults ? 'completado' : 'pendiente',
+        results: skillsResults || {}
+      },
+      {
+        slug: 'pasion',
+        name: 'Test de Pasión',
+        status: completedTests?.includes('pasion') && passionResults ? 'completado' : 'pendiente',
+        results: passionResults || {}
+      },
+      {
+        slug: 'experiencia',
+        name: 'Test de Experiencia',
+        status: completedTests?.includes('experiencia') && experienceResults ? 'completado' : 'pendiente',
+        results: experienceResults || {}
+      }
+    ];
   };
 
   if (status === "loading" || isLoading) {
@@ -625,8 +688,8 @@ export default function ResultadosPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Active Filters - Add this component before the results grid */}
+            
+              {/* Active Filters */}
               {(filters.userType.length > 0 || 
                 filters.completedTests.length > 0 || 
                 filters.personalityTraits.length > 0 ||
@@ -767,14 +830,14 @@ export default function ResultadosPage() {
                 </div>
               )}
               
-              {/* Results Table */}
-              <div className="lg:col-span-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              {/* Results Table (Full width) */}
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
                 <div className="p-4 border-b bg-gray-50">
                   <h2 className="text-lg font-medium text-gray-900">
                     Usuarios ({processedResults.length})
                   </h2>
                 </div>
-                <div className="overflow-auto max-h-[calc(100vh-280px)]">
+                <div className="overflow-auto max-h-[calc(100vh-500px)]">
                   {processedResults.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">
                       {searchTerm || filters.userType.length > 0 || filters.completedTests.length > 0
@@ -838,6 +901,18 @@ export default function ResultadosPage() {
                       </div>
                       <div className="flex gap-2">
                         <div className="flex flex-wrap gap-1">
+                          {/* Add Summary option at the beginning */}
+                          <button 
+                            onClick={() => handleTestSelect('summary')}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                              selectedTest === 'summary'
+                                ? 'bg-[#8B2332] text-white'
+                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                            }`}
+                          >
+                            Resumen
+                          </button>
+                          
                           {selectedResult.completedTests?.map(testType => (
                             <button 
                               key={testType}
@@ -886,7 +961,7 @@ export default function ResultadosPage() {
               </div>
             </div>
           </div>
-        </div>
+        
       </main>
     </div>
   );
