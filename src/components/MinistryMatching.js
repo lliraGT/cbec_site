@@ -1180,7 +1180,7 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["D", "S"],
-      spiritualGifts: ["ensenanza", "pastoreo", "sabiduria", "exhortacion", "profecia", "sabiduria", "conocimiento"],
+      spiritualGifts: ["ensenanza", "pastoreo", "sabiduria", "exhortacion", "profecia", "conocimiento"],
       skillTypes: ["I", "S", "C"],
       passionTypes: ["Enseñando", "Liderando", "Influyendo"],
       passionGroups: ["Adultos solteros", "Matrimonios jóvenes", "Nuevos cristianos"]
