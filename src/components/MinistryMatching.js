@@ -1045,7 +1045,7 @@ const ministeriosPredeterminados = [
   },
   {
     id: 6,
-    name: "Equipo de Medios",
+    name: "Equipo de Multimedia",
     description: "Administra el sonido, la iluminación, las presentaciones y las plataformas en línea para los servicios y eventos de la iglesia.",
     longDescription: "El Equipo de Medios asegura que la tecnología mejore nuestros servicios de adoración y alcance. Los miembros del equipo operan equipos de audio, crean presentaciones visuales, administran transmisiones en vivo y desarrollan contenido para redes sociales y el sitio web de la iglesia.",
     commitmentLevel: "High",
@@ -1231,8 +1231,6 @@ const ministeriosPredeterminados = [
       relevantExperiences: ["Youth Work", "Teaching", "Mentoring", "Counseling"]
     }
   },
-  
-  // ADDED: Ministerio de Jóvenes
   {
     id: 16,
     name: "Ministerio de Jóvenes",
@@ -1259,7 +1257,7 @@ const ministeriosPredeterminados = [
   },
   {
     id: 17,
-    name: "Ministerio Universitario",
+    name: "Ministerio de Universitario",
     description: "Apoya a estudiantes universitarios en su crecimiento espiritual y misión en el campus a través de comunidad y recursos específicos.",
     longDescription: "El Ministerio Universitario acompaña a estudiantes durante sus años de educación superior, un tiempo crucial para la formación de convicciones y cosmovisión. Los líderes del ministerio facilitan estudios bíblicos en campus, crean espacios de comunidad y apoyo, equipan a los estudiantes para compartir su fe en entornos académicos y los ayudan a integrar su fe con sus estudios y futuras carreras.",
     commitmentLevel: "Medium",
