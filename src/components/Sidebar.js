@@ -14,26 +14,36 @@ export default function Sidebar({ isOpen }) {
   const MCI_AUTHORIZED_ROLES = ['admin', 'elder', 'staff'];
   const SETTINGS_AUTHORIZED_ROLES = ['admin', 'staff'];
   const DESCUBRE_AUTHORIZED_ROLES = ['admin', 'elder', 'staff', 'user'];
+  const ADMIN_AUTHORIZED_ROLES = ['admin', 'staff']; // Adding roles for admin access
 
   // Check user permissions
   const canAccessMCI = session?.user?.role && MCI_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
   const canAccessSettings = session?.user?.role && SETTINGS_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
   const canAccessDescubre = session?.user?.role && DESCUBRE_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase());
+  const canAccessAdmin = session?.user?.role && ADMIN_AUTHORIZED_ROLES.includes(session.user.role.toLowerCase()); // Admin permissions check
 
   // Base menu items
   const baseMenuItems = [
-    { title: 'Home', path: '/dashboard', icon: '🏠' },
+    { title: 'Home', path: '/dashboard' },
   ];
 
   // Conditional menu items
-  const mciMenuItem = { title: 'MCI', path: '/dashboard/mci', icon: '📈' };
+  const mciMenuItem = { title: 'MCI', path: '/dashboard/mci' };
+  
+  // Updated Descubre menu items with Admin option
   const descubreMenuItems = [
-    { title: 'Dones', path: '/dashboard/descubre/dones', icon: '✅' },
-    { title: 'Resultados', path: '/dashboard/descubre/resultados', icon: '📊' }
+    { title: 'Dones', path: '/dashboard/descubre/dones' },
+    { title: 'Resultados', path: '/dashboard/descubre/resultados' }
   ];
+  
+  // Add Admin option if user has appropriate permissions
+  if (canAccessAdmin) {
+    descubreMenuItems.push({ title: 'Admin', path: '/dashboard/descubre/admin' });
+  }
+  
   const settingsItems = [
-    { title: 'Invite Users', path: '/dashboard/settings/invite', icon: '📧' },
-    { title: 'Users', path: '/dashboard/settings/users', icon: '👥' },
+    { title: 'Invite Users', path: '/dashboard/settings/invite' },
+    { title: 'Users', path: '/dashboard/settings/users' },
   ];
 
   // Combine menu items based on permissions
