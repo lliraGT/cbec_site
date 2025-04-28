@@ -71,10 +71,10 @@ export default async function handler(req, res) {
     const { data, error } = await resend.emails.send({
       from: 'CBEC | Pruebas Descubre <descubre@cbec.online>',
       to: email,
-      subject: 'Invitación para completar tests de descubrimiento',
+      subject: 'Invitación para completar tests de "Descubre"',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #8B2332;">Has sido invitado a completar tests de descubrimiento</h1>
+          <h1 style="color: #8B2332;">Has sido invitado a completar tests de Descubre</h1>
           <p>Has sido invitado a completar los siguientes tests:</p>
           <ul>
             ${testList}

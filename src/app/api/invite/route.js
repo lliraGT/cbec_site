@@ -50,16 +50,16 @@ export async function POST(request) {
 
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'Church Onboarding <onboarding@resend.dev>',
+      from: 'CBEC | Bienvenido <info@cbec.online>',
       to: email,
-      subject: 'Invitation to join the platform',
+      subject: 'Invitación a unirte a la plataforma administrativa de CBEC',
       html: `
-        <h1>You've been invited!</h1>
-        <p>You've been invited to join our platform with the role of ${role}.</p>
-        <p>Click the link below to set up your password and access your account:</p>
+        <h1>Haz sido Invitado!</h1>
+        <p>Haz sido invitado a unirte a la plataforma administrativa de CBEC con el rol de ${role}.</p>
+        <p>Haz clic en el botón a continuación para acceder a tu cuenta:</p>
         <a href="${inviteUrl}" style="display: inline-block; padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">Accept Invitation</a>
-        <p>This invitation will expire in 24 hours.</p>
-        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p>Este invitación expirará en 24 horas.</p>
+        <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
         <p>${inviteUrl}</p>
       `,
     });
