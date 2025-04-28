@@ -884,7 +884,7 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
 const ministeriosPredeterminados = [
   {
     id: 1,
-    name: "Ministerio de Niños",
+    name: "Ministerios Infantiles",
     description: "Trabaja con niños para enseñarles acerca de Jesús y ayudarlos a crecer en su fe.",
     longDescription: "Nuestro Ministerio de Niños proporciona un ambiente seguro, divertido y atractivo donde los niños pueden aprender acerca de Jesús y crecer en su fe. Los miembros del equipo ayudan con las clases de escuela dominical, la iglesia de los niños y eventos especiales para niños de todas las edades.",
     commitmentLevel: "Medium",
@@ -926,6 +926,29 @@ const ministeriosPredeterminados = [
       skillTypes: ["A", "E"],
       passionGroups: ["Worship"],
       relevantExperiences: ["Music", "Public Speaking"]
+    }
+  },
+  {
+    id: 11,
+    name: "Directores de Culto",
+    description: "Planifica y dirige los tiempos de adoración, coordinando con el equipo de alabanza para crear una experiencia significativa.",
+    longDescription: "Los Directores de Culto planifican la estructura del servicio, seleccionan las canciones apropiadas, y guían a la congregación en la adoración. Trabajan en estrecha colaboración con el pastor y el equipo de alabanza para asegurar que cada servicio fluya bien y cree un ambiente donde las personas puedan encontrarse con Dios.",
+    commitmentLevel: "High",
+    teamSize: "3-5",
+    schedule: "Planificación semanal, ensayos jueves, servicios dominicales",
+    contactName: "Roberto Sánchez",
+    contactEmail: "roberto@church.org",
+    requirements: [
+      "Madurez espiritual y discernimiento",
+      "Conocimiento musical y experiencia en adoración",
+      "Habilidades de liderazgo y comunicación"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["D", "I"],
+      spiritualGifts: ["liderazgo", "pastoreo", "discernimiento", "fe"],
+      skillTypes: ["A", "E", "S"],
+      passionGroups: ["Worship", "Prayer"],
+      relevantExperiences: ["Worship Leading", "Music Ministry", "Public Speaking"]
     }
   },
   {
@@ -998,6 +1021,29 @@ const ministeriosPredeterminados = [
     }
   },
   {
+    id: 12,
+    name: "Ayuda Social y Misericordia",
+    description: "Atiende a personas en situación de vulnerabilidad a través de programas de asistencia práctica y apoyo emocional.",
+    longDescription: "El Ministerio de Ayuda Social y Misericordia identifica y responde a las necesidades básicas de personas vulnerables en nuestra comunidad. Los miembros organizan colectas de alimentos, ropa y artículos básicos, proveen asistencia en crisis, y desarrollan programas continuos para apoyar a familias de bajos recursos, personas sin hogar y otros grupos en necesidad.",
+    commitmentLevel: "Medium",
+    teamSize: "10-15",
+    schedule: "Reuniones mensuales, proyectos semanales o quincenales",
+    contactName: "Elena Vázquez",
+    contactEmail: "elena@church.org",
+    requirements: [
+      "Corazón compasivo y servicial",
+      "Sensibilidad a las necesidades sociales",
+      "Capacidad para trabajar con personas en situaciones difíciles"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["S", "I"],
+      spiritualGifts: ["misericordia", "servicio", "ayuda", "dar"],
+      skillTypes: ["S", "R"],
+      passionGroups: ["Homeless", "Families", "Elderly", "Addicts"],
+      relevantExperiences: ["Social Work", "Counseling", "Volunteer Work"]
+    }
+  },
+  {
     id: 6,
     name: "Equipo de Medios",
     description: "Administra el sonido, la iluminación, las presentaciones y las plataformas en línea para los servicios y eventos de la iglesia.",
@@ -1018,6 +1064,52 @@ const ministeriosPredeterminados = [
       skillTypes: ["R", "A", "C"],
       passionGroups: ["Worship", "Teaching"],
       relevantExperiences: ["Technology", "Design", "Audio/Visual Production"]
+    }
+  },
+  {
+    id: 13,
+    name: "Servicio en Montaje",
+    description: "Prepara los espacios para los servicios y eventos de la iglesia, instalando y desmontando equipos y mobiliario.",
+    longDescription: "El equipo de Servicio en Montaje trabaja entre bastidores para asegurar que todos los espacios estén perfectamente preparados antes de cada servicio o evento. Los miembros del equipo se encargan de colocar sillas, preparar escenarios, montar pantallas, instalar equipos de sonido y crear el ambiente adecuado para cada actividad de la iglesia.",
+    commitmentLevel: "Medium",
+    teamSize: "8-10",
+    schedule: "Antes y después de servicios dominicales y eventos especiales",
+    contactName: "Carlos Hernández",
+    contactEmail: "carlos@church.org",
+    requirements: [
+      "Capacidad física para levantar y mover objetos",
+      "Puntualidad y confiabilidad",
+      "Orientación al detalle y organización"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["S", "C", "R"],
+      spiritualGifts: ["servicio", "ayuda", "administracion"],
+      skillTypes: ["R", "C"],
+      passionGroups: [],
+      relevantExperiences: ["Manual Labor", "Event Setup", "Technical Support"]
+    }
+  },
+  {
+    id: 14,
+    name: "Ornamentación de la Iglesia",
+    description: "Diseña y crea ambientes visuales atractivos y significativos para los servicios y eventos especiales.",
+    longDescription: "El ministerio de Ornamentación transforma los espacios de la iglesia para crear ambientes que inspiren adoración y reflejen las temporadas litúrgicas o temas especiales. Los miembros seleccionan y crean decoraciones, arreglos florales, exhibiciones visuales y elementos ambientales que enriquecen la experiencia del culto y comunican verdades bíblicas a través del diseño visual.",
+    commitmentLevel: "Medium",
+    teamSize: "5-8",
+    schedule: "Preparación semanal, énfasis en días festivos y eventos especiales",
+    contactName: "Laura Mendoza",
+    contactEmail: "laura@church.org",
+    requirements: [
+      "Creatividad y sentido estético",
+      "Habilidades en diseño o decoración",
+      "Disposición para trabajar en equipo"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["A", "S", "C"],
+      spiritualGifts: ["servicio", "ayuda"],
+      skillTypes: ["A", "R"],
+      passionGroups: ["Worship"],
+      relevantExperiences: ["Design", "Floral Arrangement", "Interior Decoration", "Visual Arts"]
     }
   },
   {
@@ -1113,6 +1205,128 @@ const ministeriosPredeterminados = [
       skillTypes: ["S", "R"],
       passionGroups: ["Elderly", "Families"],
       relevantExperiences: ["Caregiving", "Counseling", "Healthcare"]
+    }
+  },
+  {
+    id: 15,
+    name: "Ministerio de Adolescentes",
+    description: "Guía a los adolescentes (12-17 años) en su crecimiento espiritual a través de enseñanza, mentoreo y actividades específicas para su edad.",
+    longDescription: "El Ministerio de Adolescentes crea un espacio seguro donde los jóvenes entre 12 y 17 años pueden crecer en su fe, desarrollar relaciones saludables y descubrir su identidad en Cristo. Los líderes facilitan estudios bíblicos, discusiones relevantes, actividades recreativas y oportunidades de servicio que responden a las necesidades específicas de los adolescentes en esta etapa crucial de desarrollo.",
+    commitmentLevel: "High",
+    teamSize: "8-12",
+    schedule: "Reuniones semanales, eventos mensuales, retiros ocasionales",
+    contactName: "Marcos González",
+    contactEmail: "marcos@church.org",
+    requirements: [
+      "Pasión por los adolescentes",
+      "Verificación de antecedentes requerida",
+      "Capacidad para conectar con la cultura juvenil",
+      "Compromiso mínimo de 1 año"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["I", "S", "D"],
+      spiritualGifts: ["ensenanza", "pastoreo", "exhortacion", "misericordia"],
+      skillTypes: ["S", "E", "A"],
+      passionGroups: ["Youth", "Adolecentes"],
+      relevantExperiences: ["Youth Work", "Teaching", "Mentoring", "Counseling"]
+    }
+  },
+  
+  // ADDED: Ministerio de Jóvenes
+  {
+    id: 16,
+    name: "Ministerio de Jóvenes",
+    description: "Acompaña a jóvenes de 18-25 años en su crecimiento espiritual y transición a la vida adulta a través de comunidad y discipulado.",
+    longDescription: "El Ministerio de Jóvenes está enfocado en acompañar a jóvenes adultos (18-25 años) en su transición a la vida adulta, ayudándoles a establecer fundamentos firmes en su fe. Los líderes crean oportunidades para el discipulado profundo, desarrollo de liderazgo, comunidad auténtica y participación en la misión de la iglesia, respondiendo a los desafíos únicos que enfrentan los jóvenes en esta etapa de vida.",
+    commitmentLevel: "High",
+    teamSize: "8-12",
+    schedule: "Reuniones semanales, eventos mensuales, discipulado individual",
+    contactName: "Daniel Palacios",
+    contactEmail: "daniel@church.org",
+    requirements: [
+      "Madurez espiritual",
+      "Capacidad para relacionarse con jóvenes adultos",
+      "Disponibilidad para mentoría individual",
+      "Verificación de antecedentes requerida"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["I", "D", "S"],
+      spiritualGifts: ["pastoreo", "ensenanza", "exhortacion", "liderazgo"],
+      skillTypes: ["S", "E", "I"],
+      passionGroups: ["Youth", "Young Adults"],
+      relevantExperiences: ["Youth Ministry", "Mentoring", "Teaching", "Leadership Development"]
+    }
+  },
+  {
+    id: 17,
+    name: "Ministerio Universitario",
+    description: "Apoya a estudiantes universitarios en su crecimiento espiritual y misión en el campus a través de comunidad y recursos específicos.",
+    longDescription: "El Ministerio Universitario acompaña a estudiantes durante sus años de educación superior, un tiempo crucial para la formación de convicciones y cosmovisión. Los líderes del ministerio facilitan estudios bíblicos en campus, crean espacios de comunidad y apoyo, equipan a los estudiantes para compartir su fe en entornos académicos y los ayudan a integrar su fe con sus estudios y futuras carreras.",
+    commitmentLevel: "Medium",
+    teamSize: "5-10",
+    schedule: "Reuniones semanales en campus, eventos según calendario académico",
+    contactName: "Patricia Morales",
+    contactEmail: "patricia@church.org",
+    requirements: [
+      "Familiaridad con la cultura universitaria",
+      "Capacidad para abordar preguntas intelectuales sobre la fe",
+      "Disponibilidad según horarios universitarios",
+      "Preferentemente con experiencia universitaria"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["I", "C", "D"],
+      spiritualGifts: ["ensenanza", "sabiduria", "evangelismo", "exhortacion"],
+      skillTypes: ["I", "S", "E"],
+      passionGroups: ["Youth", "College Students", "Teaching"],
+      relevantExperiences: ["Higher Education", "Campus Ministry", "Apologetics", "Mentoring"]
+    }
+  },
+  {
+    id: 18,
+    name: "Ministerio de Diseño Gráfico",
+    description: "Crea y desarrolla materiales visuales para comunicar el mensaje de la iglesia de manera efectiva y atractiva.",
+    longDescription: "El Ministerio de Diseño Gráfico utiliza talento artístico y habilidades creativas para producir materiales visuales que apoyan la comunicación de la iglesia. Los miembros del equipo diseñan gráficos para redes sociales, boletines, presentaciones, banners, folletos, logos para eventos especiales y materiales promocionales que ayudan a transmitir el mensaje de la iglesia con excelencia y claridad.",
+    commitmentLevel: "Medium",
+    teamSize: "3-6",
+    schedule: "Proyectos semanales con plazos flexibles, ocasionalmente presencial para eventos especiales",
+    contactName: "Gabriela Soto",
+    contactEmail: "gabriela@church.org",
+    requirements: [
+      "Habilidades en diseño gráfico y herramientas como Photoshop, Illustrator, Canva, etc.",
+      "Ojo para el detalle y sensibilidad estética",
+      "Capacidad para trabajar con plazos y recibir retroalimentación",
+      "Preferentemente con portafolio de trabajos previos"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["A", "C", "I"],
+      spiritualGifts: ["servicio", "ayuda", "administracion"],
+      skillTypes: ["A", "C", "I"],
+      passionGroups: ["Teaching", "Worship"],
+      relevantExperiences: ["Graphic Design", "Visual Arts", "Marketing", "Social Media"]
+    }
+  },
+  {
+    id: 19,
+    name: "Ministerio de Desarrollo Tecnológico",
+    description: "Desarrolla y mantiene soluciones tecnológicas que apoyan la misión de la iglesia y mejoran su alcance digital.",
+    longDescription: "El Ministerio de Desarrollo Tecnológico utiliza habilidades en programación, desarrollo web y sistemas de información para crear y mantener herramientas digitales que apoyan los diversos ministerios. Los miembros del equipo trabajan en el sitio web de la iglesia, aplicaciones móviles, sistemas de gestión de bases de datos, herramientas para transmisiones en línea y otras soluciones digitales que mejoran la experiencia de la comunidad y amplían el alcance del ministerio.",
+    commitmentLevel: "Medium",
+    teamSize: "4-8",
+    schedule: "Reuniones quincenales, desarrollo continuo con horario flexible",
+    contactName: "Andrés Ramírez",
+    contactEmail: "andres@church.org",
+    requirements: [
+      "Conocimientos en desarrollo web, programación o sistemas",
+      "Experiencia con al menos una tecnología relevante (JavaScript, Python, PHP, bases de datos, etc.)",
+      "Capacidad para trabajar en equipo y documentar soluciones",
+      "Compromiso con la mejora continua y aprendizaje"
+    ],
+    recommendedTraits: {
+      personalityTypes: ["C", "I", "D"],
+      spiritualGifts: ["administracion", "servicio", "ayuda", "sabiduria"],
+      skillTypes: ["I", "C", "E"],
+      passionGroups: ["Teaching"],
+      relevantExperiences: ["Software Development", "Web Development", "IT Support", "Database Management"]
     }
   }
 ];
