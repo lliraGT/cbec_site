@@ -52,12 +52,12 @@ export default function Sidebar({ isOpen }) {
     ...(canAccessMCI ? [mciMenuItem] : []),
     { 
       title: 'Descubre', 
-      icon: '🔍', 
+       
       submenu: canAccessDescubre ? descubreMenuItems : [] 
     },
     { 
       title: 'Settings', 
-      icon: '⚙️', 
+     
       submenu: canAccessSettings ? settingsItems : [] 
     }
   ];
