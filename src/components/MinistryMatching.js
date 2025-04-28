@@ -172,37 +172,87 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
 
       // Calcular compatibilidad de pasión (0-100)
       let passionScore = 0;
+      
+      // Cálculo para grupos de pasión
+      let passionGroupScore = 0;
       if (passionGroups.length > 0) {
         const relevantPassionGroups = ministry.recommendedTraits.passionGroups || [];
-        const matchingPassions = relevantPassionGroups.filter(
-          passionGroup => passionGroups.some(pg => pg.toLowerCase().includes(passionGroup.toLowerCase()))
-        );
-        passionScore = relevantPassionGroups.length > 0 
-          ? (matchingPassions.length / relevantPassionGroups.length) * 100 
-          : 0;
+        const matchingGroups = [];
         
-        if (matchingPassions.length > 0) {
-          const passionLabels = matchingPassions.map(passion => {
-            const labels = {
-              'Children': 'Niños',
-              'Youth': 'Jóvenes',
-              'Elderly': 'Ancianos',
-              'Families': 'Familias',
-              'Homeless': 'Personas sin hogar',
-              'Addicts': 'Adicciones',
-              'International': 'Internacional',
-              'Prayer': 'Oración',
-              'Worship': 'Adoración',
-              'Teaching': 'Enseñanza'
-            };
-            return labels[passion] || passion;
+        // Compara cada grupo del ministerio con los grupos seleccionados por el usuario
+        // Utilizando coincidencia parcial para manejar las diferentes formas de nombrar los grupos
+        relevantPassionGroups.forEach(recommendedGroup => {
+          const matchFound = passionGroups.some(userGroup => {
+            // Normaliza las cadenas para comparación (minúsculas, sin tildes)
+            const normalizedRecommended = recommendedGroup.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const normalizedUser = userGroup.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            // Verifica si el grupo recomendado está contenido o contiene al grupo del usuario
+            return normalizedUser.includes(normalizedRecommended) || 
+                   normalizedRecommended.includes(normalizedUser);
           });
           
+          if (matchFound) {
+            matchingGroups.push(recommendedGroup);
+          }
+        });
+        
+        passionGroupScore = relevantPassionGroups.length > 0 
+          ? (matchingGroups.length / relevantPassionGroups.length) * 100 
+          : 0;
+        
+        if (matchingGroups.length > 0) {
           matchReasons.push({
             type: 'passion',
-            description: `Tu pasión por ${passionLabels.join(', ')} se alinea perfectamente con el enfoque de este ministerio.`
+            description: `Tu pasión por trabajar con ${matchingGroups.join(', ')} se alinea perfectamente con el enfoque de este ministerio.`
           });
         }
+      }
+      
+      // Cálculo para tipos de pasión
+      let passionTypeScore = 0;
+      if (passionTypes.length > 0) {
+        const relevantPassionTypes = ministry.recommendedTraits.passionTypes || [];
+        const matchingTypes = [];
+        
+        // Compara cada tipo de pasión del ministerio con los tipos seleccionados por el usuario
+        // Utilizando coincidencia parcial para manejar las diferentes formas de nombrar los tipos
+        relevantPassionTypes.forEach(recommendedType => {
+          const matchFound = passionTypes.some(userType => {
+            // Normaliza las cadenas para comparación (minúsculas, sin tildes)
+            const normalizedRecommended = recommendedType.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const normalizedUser = userType.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            return normalizedUser === normalizedRecommended || 
+                   normalizedUser.includes(normalizedRecommended) || 
+                   normalizedRecommended.includes(normalizedUser);
+          });
+          
+          if (matchFound) {
+            matchingTypes.push(recommendedType);
+          }
+        });
+        
+        passionTypeScore = relevantPassionTypes.length > 0 
+          ? (matchingTypes.length / relevantPassionTypes.length) * 100 
+          : 0;
+        
+        if (matchingTypes.length > 0) {
+          matchReasons.push({
+            type: 'passionType',
+            description: `Tu forma de expresar pasión (${matchingTypes.join(', ')}) es muy valiosa para este ministerio.`
+          });
+        }
+      }
+      
+      // Calcular promedio de ambos puntajes (grupos y tipos) para el puntaje final de pasión
+      // Si solo hay uno disponible, usar ese puntaje directamente
+      if (passionGroups.length > 0 && passionTypes.length > 0) {
+        passionScore = (passionGroupScore + passionTypeScore) / 2;
+      } else if (passionGroups.length > 0) {
+        passionScore = passionGroupScore;
+      } else if (passionTypes.length > 0) {
+        passionScore = passionTypeScore;
       }
 
       // Calcular relevancia de experiencia (0-100)
@@ -227,11 +277,11 @@ const MinistryMatching = ({ userTests = [], ministryOpportunities = null }) => {
 
       // Calcular puntuación general de compatibilidad (promedio ponderado)
       const weights = {
-        personality: 0.15,
+        personality: 0.25,
         gifts: 0.35,
         skills: 0.20,
         passion: 0.20,
-        experience: 0.10
+        experience: 0
       };
       
       const compatibilityScore = Math.round(
@@ -900,9 +950,9 @@ const ministeriosPredeterminados = [
     recommendedTraits: {
       personalityTypes: ["I", "S"],
       spiritualGifts: ["ensenanza", "pastoreo", "misericordia", "servicio"],
-      skillTypes: ["S", "A"],
-      passionGroups: ["Children"],
-      relevantExperiences: ["Teaching", "Childcare"]
+      skillTypes: ["S", "R"],
+      passionTypes: ["Enseñando", "Sirviendo", "Socializando"],
+      passionGroups: ["Bebés", "Preescolares", "Niños de edad escolar"]
     }
   },
   {
@@ -921,11 +971,11 @@ const ministeriosPredeterminados = [
       "Ensayos semanales más servicios dominicales"
     ],
     recommendedTraits: {
-      personalityTypes: ["I", "S", "D"],
-      spiritualGifts: ["evangelismo", "exhortacion", "fe"],
-      skillTypes: ["A", "E"],
-      passionGroups: ["Worship"],
-      relevantExperiences: ["Music", "Public Speaking"]
+      personalityTypes: ["I", "D"],
+      spiritualGifts: ["servicio", "ensenanza", "liderazgo"],
+      skillTypes: ["A", "S"],
+      passionTypes: ["Protagonizando", "Influyendo", "Creando"],
+      passionGroups: ["Adolescentes", "Jóvenes", "Adultos solteros"]
     }
   },
   {
@@ -945,10 +995,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I"],
-      spiritualGifts: ["liderazgo", "pastoreo", "discernimiento", "fe"],
-      skillTypes: ["A", "E", "S"],
-      passionGroups: ["Worship", "Prayer"],
-      relevantExperiences: ["Worship Leading", "Music Ministry", "Public Speaking"]
+      spiritualGifts: ["liderazgo", "administracion", "sabiduria", "discernimiento"],
+      skillTypes: ["E", "C"],
+      passionTypes: ["Liderando", "Organizando", "Mejorando"],
+      passionGroups: ["Nuevos cristianos", "Nuevos miembros de la iglesia"]
     }
   },
   {
@@ -968,10 +1018,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["I", "S"],
-      spiritualGifts: ["hospitalidad", "misericordia", "exhortacion"],
-      skillTypes: ["S", "E"],
-      passionGroups: ["Families", "International"],
-      relevantExperiences: ["Customer Service", "Hospitality"]
+      spiritualGifts: ["hospitalidad", "servicio", "misericordia"],
+      skillTypes: ["S", "C"],
+      passionTypes: ["Socializando", "Sirviendo", "Defendiendo"],
+      passionGroups: ["Nuevos cristianos", "Nuevos miembros de la iglesia", "No cristianos"]
     }
   },
   {
@@ -990,11 +1040,11 @@ const ministeriosPredeterminados = [
       "Asistir al menos a una reunión de oración al mes"
     ],
     recommendedTraits: {
-      personalityTypes: ["I", "C", "S"],
-      spiritualGifts: ["fe", "discernimiento", "sabiduria", "profecia"],
-      skillTypes: ["I", "S"],
-      passionGroups: ["Prayer"],
-      relevantExperiences: ["Spiritual Growth", "Counseling"]
+      personalityTypes: ["S", "C"],
+      spiritualGifts: ["fe", "sabiduria", "discernimiento", "misericordia"],
+      skillTypes: ["I", "C"],
+      passionTypes: ["Sirviendo", "Reparando", "Defendiendo"],
+      passionGroups: ["Enfermos terminales", "Familiares de enfermos terminales", "Cristianos desilusionados"]
     }
   },
   {
@@ -1014,10 +1064,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I"],
-      spiritualGifts: ["evangelismo", "misericordia", "exhortacion", "servicio"],
-      skillTypes: ["S", "E", "R"],
-      passionGroups: ["Homeless", "Addicts", "International"],
-      relevantExperiences: ["Volunteering", "Public Speaking", "Social Work"]
+      spiritualGifts: ["evangelismo", "servicio", "misericordia", "exhortacion"],
+      skillTypes: ["E", "S"],
+      passionTypes: ["Desafiando", "Influyendo", "Sirviendo"],
+      passionGroups: ["No cristianos", "Cristianos nominales", "Indigentes", "Grupos indígenas"]
     }
   },
   {
@@ -1036,11 +1086,11 @@ const ministeriosPredeterminados = [
       "Capacidad para trabajar con personas en situaciones difíciles"
     ],
     recommendedTraits: {
-      personalityTypes: ["S", "I"],
-      spiritualGifts: ["misericordia", "servicio", "ayuda", "dar"],
+      personalityTypes: ["S", "C"],
+      spiritualGifts: ["misericordia", "servicio", "ayuda", "fe"],
       skillTypes: ["S", "R"],
-      passionGroups: ["Homeless", "Families", "Elderly", "Addicts"],
-      relevantExperiences: ["Social Work", "Counseling", "Volunteer Work"]
+      passionTypes: ["Sirviendo", "Reparando", "Defendiendo"],
+      passionGroups: ["Indigentes", "Abusados sexualmente", "Personas en pobreza extrema", "Desempleados", "Hospitalizados"]
     }
   },
   {
@@ -1059,16 +1109,16 @@ const ministeriosPredeterminados = [
       "Capacidad para aprender nuevos sistemas"
     ],
     recommendedTraits: {
-      personalityTypes: ["C", "D", "I"],
-      spiritualGifts: ["ayuda", "administracion", "servicio"],
-      skillTypes: ["R", "A", "C"],
-      passionGroups: ["Worship", "Teaching"],
-      relevantExperiences: ["Technology", "Design", "Audio/Visual Production"]
+      personalityTypes: ["C", "S"],
+      spiritualGifts: ["servicio", "administracion"],
+      skillTypes: ["A", "C", "R"],
+      passionTypes: ["Creando", "Administrando", "Organizando"],
+      passionGroups: ["Jóvenes", "Adultos solteros", "Estudiantes universitarios"]
     }
   },
   {
     id: 13,
-    name: "Servicio en Montaje",
+    name: "Ministerio de Ayuda y Servicio",
     description: "Prepara los espacios para los servicios y eventos de la iglesia, instalando y desmontando equipos y mobiliario.",
     longDescription: "El equipo de Servicio en Montaje trabaja entre bastidores para asegurar que todos los espacios estén perfectamente preparados antes de cada servicio o evento. Los miembros del equipo se encargan de colocar sillas, preparar escenarios, montar pantallas, instalar equipos de sonido y crear el ambiente adecuado para cada actividad de la iglesia.",
     commitmentLevel: "Medium",
@@ -1082,16 +1132,16 @@ const ministeriosPredeterminados = [
       "Orientación al detalle y organización"
     ],
     recommendedTraits: {
-      personalityTypes: ["S", "C", "R"],
-      spiritualGifts: ["servicio", "ayuda", "administracion"],
+      personalityTypes: ["S", "C"],
+      spiritualGifts: ["ayuda", "servicio", "administracion"],
       skillTypes: ["R", "C"],
-      passionGroups: [],
-      relevantExperiences: ["Manual Labor", "Event Setup", "Technical Support"]
+      passionTypes: ["Organizando", "Sirviendo", "Perfeccionando"],
+      passionGroups: ["Adultos", "Jóvenes", "Voluntarios en general"]
     }
   },
   {
     id: 14,
-    name: "Ornamentación de la Iglesia",
+    name: "Ornato de la Iglesia",
     description: "Diseña y crea ambientes visuales atractivos y significativos para los servicios y eventos especiales.",
     longDescription: "El ministerio de Ornamentación transforma los espacios de la iglesia para crear ambientes que inspiren adoración y reflejen las temporadas litúrgicas o temas especiales. Los miembros seleccionan y crean decoraciones, arreglos florales, exhibiciones visuales y elementos ambientales que enriquecen la experiencia del culto y comunican verdades bíblicas a través del diseño visual.",
     commitmentLevel: "Medium",
@@ -1105,11 +1155,11 @@ const ministeriosPredeterminados = [
       "Disposición para trabajar en equipo"
     ],
     recommendedTraits: {
-      personalityTypes: ["A", "S", "C"],
-      spiritualGifts: ["servicio", "ayuda"],
-      skillTypes: ["A", "R"],
-      passionGroups: ["Worship"],
-      relevantExperiences: ["Design", "Floral Arrangement", "Interior Decoration", "Visual Arts"]
+      personalityTypes: ["A", "S"],
+      spiritualGifts: ["servicio", "sabiduria", "dar"],
+      skillTypes: ["A", "C"],
+      passionTypes: ["Creando", "Mejorando", "Perfeccionando"],
+      passionGroups: ["Artistas: músicos, actores, escritores", "Adultos solteros"]
     }
   },
   {
@@ -1129,11 +1179,11 @@ const ministeriosPredeterminados = [
       "Compromiso mínimo de 1 año"
     ],
     recommendedTraits: {
-      personalityTypes: ["D", "I", "C"],
-      spiritualGifts: ["ensenanza", "pastoreo", "conocimiento", "sabiduria"],
-      skillTypes: ["I", "S", "E"],
-      passionGroups: ["Teaching", "Families", "Youth"],
-      relevantExperiences: ["Teaching", "Mentoring", "Leadership"]
+      personalityTypes: ["D", "S"],
+      spiritualGifts: ["ensenanza", "pastoreo", "sabiduria", "exhortacion", "profecia", "sabiduria", "conocimiento"],
+      skillTypes: ["I", "S", "C"],
+      passionTypes: ["Enseñando", "Liderando", "Influyendo"],
+      passionGroups: ["Adultos solteros", "Matrimonios jóvenes", "Nuevos cristianos"]
     }
   },
   {
@@ -1154,10 +1204,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["C", "S"],
-      spiritualGifts: ["administracion", "ayuda", "servicio"],
-      skillTypes: ["C", "I", "R"],
-      passionGroups: [],
-      relevantExperiences: ["Office Work", "Project Management", "Event Planning"]
+      spiritualGifts: ["administracion", "servicio", "sabiduria"],
+      skillTypes: ["C", "R"],
+      passionTypes: ["Administrando", "Organizando", "Perfeccionando"],
+      passionGroups: ["Directores", "Ministros", "Equipo pastoral"]
     }
   },
   {
@@ -1177,10 +1227,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["D", "I", "S"],
-      spiritualGifts: ["evangelismo", "fe", "liderazgo", "misericordia"],
-      skillTypes: ["S", "E", "I"],
-      passionGroups: ["International", "Teaching", "Prayer"],
-      relevantExperiences: ["Travel", "Languages", "Cross-cultural experience"]
+      spiritualGifts: ["evangelismo", "liderazgo", "fe", "servicio"],
+      skillTypes: ["E", "R", "S"],
+      passionTypes: ["Desafiando", "Influyendo", "Sirviendo"],
+      passionGroups: ["Grupos indígenas", "Extranjeros", "No cristianos", "Nuevos cristianos"]
     }
   },
   {
@@ -1200,11 +1250,11 @@ const ministeriosPredeterminados = [
       "Licencia de conducir válida (para algunos roles)"
     ],
     recommendedTraits: {
-      personalityTypes: ["S", "C", "I"],
-      spiritualGifts: ["misericordia", "exhortacion", "hospitalidad", "ayuda"],
-      skillTypes: ["S", "R"],
-      passionGroups: ["Elderly", "Families"],
-      relevantExperiences: ["Caregiving", "Counseling", "Healthcare"]
+      personalityTypes: ["S", "C"],
+      spiritualGifts: ["misericordia", "ayuda", "servicio", "discernimiento"],
+      skillTypes: ["S", "C", "R"],
+      passionTypes: ["Sirviendo", "Reparando", "Defendiendo"],
+      passionGroups: ["Enfermos terminales", "Familiares de enfermos terminales", "Divorciados", "Cristianos desilusionados"]
     }
   },
   {
@@ -1224,11 +1274,11 @@ const ministeriosPredeterminados = [
       "Compromiso mínimo de 1 año"
     ],
     recommendedTraits: {
-      personalityTypes: ["I", "S", "D"],
-      spiritualGifts: ["ensenanza", "pastoreo", "exhortacion", "misericordia"],
+      personalityTypes: ["I", "D", "S"],
+      spiritualGifts: ["pastoreo", "ensenanza", "exhortacion", "liderazgo"],
       skillTypes: ["S", "E", "A"],
-      passionGroups: ["Youth", "Adolecentes"],
-      relevantExperiences: ["Youth Work", "Teaching", "Mentoring", "Counseling"]
+      passionTypes: ["Enseñando", "Liderando", "Socializando"],
+      passionGroups: ["Adolescentes", "Hijos de pastores", "Hijos de padres solteros"]
     }
   },
   {
@@ -1249,10 +1299,10 @@ const ministeriosPredeterminados = [
     ],
     recommendedTraits: {
       personalityTypes: ["I", "D", "S"],
-      spiritualGifts: ["pastoreo", "ensenanza", "exhortacion", "liderazgo"],
-      skillTypes: ["S", "E", "I"],
-      passionGroups: ["Youth", "Young Adults"],
-      relevantExperiences: ["Youth Ministry", "Mentoring", "Teaching", "Leadership Development"]
+      spiritualGifts: ["pastoreo", "ensenanza", "liderazgo", "exhortacion"],
+      skillTypes: ["S", "E", "A"],
+      passionTypes: ["Liderando", "Influyendo", "Enseñando"],
+      passionGroups: ["Jóvenes", "Estudiantes universitarios", "Adultos solteros"]
     }
   },
   {
@@ -1272,16 +1322,16 @@ const ministeriosPredeterminados = [
       "Preferentemente con experiencia universitaria"
     ],
     recommendedTraits: {
-      personalityTypes: ["I", "C", "D"],
-      spiritualGifts: ["ensenanza", "sabiduria", "evangelismo", "exhortacion"],
-      skillTypes: ["I", "S", "E"],
-      passionGroups: ["Youth", "College Students", "Teaching"],
-      relevantExperiences: ["Higher Education", "Campus Ministry", "Apologetics", "Mentoring"]
+      personalityTypes: ["I", "D", "S"],
+      spiritualGifts: ["ensenanza", "evangelismo", "liderazgo", "discernimiento"],
+      skillTypes: ["S", "I", "E"],
+      passionTypes: ["Enseñando", "Desafiando", "Innovando"],
+      passionGroups: ["Estudiantes universitarios", "Jóvenes"]
     }
   },
   {
     id: 18,
-    name: "Ministerio de Diseño Gráfico",
+    name: "Ministerio de Diseño",
     description: "Crea y desarrolla materiales visuales para comunicar el mensaje de la iglesia de manera efectiva y atractiva.",
     longDescription: "El Ministerio de Diseño Gráfico utiliza talento artístico y habilidades creativas para producir materiales visuales que apoyan la comunicación de la iglesia. Los miembros del equipo diseñan gráficos para redes sociales, boletines, presentaciones, banners, folletos, logos para eventos especiales y materiales promocionales que ayudan a transmitir el mensaje de la iglesia con excelencia y claridad.",
     commitmentLevel: "Medium",
@@ -1296,11 +1346,11 @@ const ministeriosPredeterminados = [
       "Preferentemente con portafolio de trabajos previos"
     ],
     recommendedTraits: {
-      personalityTypes: ["A", "C", "I"],
-      spiritualGifts: ["servicio", "ayuda", "administracion"],
-      skillTypes: ["A", "C", "I"],
-      passionGroups: ["Teaching", "Worship"],
-      relevantExperiences: ["Graphic Design", "Visual Arts", "Marketing", "Social Media"]
+      personalityTypes: ["A", "C"],
+      spiritualGifts: ["sabiduria", "servicio", "ayuda"],
+      skillTypes: ["A", "C"],
+      passionTypes: ["Creando", "Innovando", "Perfeccionando"],
+      passionGroups: ["Artistas: músicos, actores, escritores", "Nuevos cristianos"]
     }
   },
   {
@@ -1320,11 +1370,11 @@ const ministeriosPredeterminados = [
       "Compromiso con la mejora continua y aprendizaje"
     ],
     recommendedTraits: {
-      personalityTypes: ["C", "I", "D"],
-      spiritualGifts: ["administracion", "servicio", "ayuda", "sabiduria"],
-      skillTypes: ["I", "C", "E"],
-      passionGroups: ["Teaching"],
-      relevantExperiences: ["Software Development", "Web Development", "IT Support", "Database Management"]
+      personalityTypes: ["C", "I"],
+      spiritualGifts: ["conocimiento", "sabiduria", "servicio"],
+      skillTypes: ["I", "C", "R"],
+      passionTypes: ["Innovando", "Mejorando", "Organizando"],
+      passionGroups: ["Adultos jóvenes", "Estudiantes universitarios", "Ministros"]
     }
   }
 ];
