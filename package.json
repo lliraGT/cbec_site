@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@sanity/client": "^6.27.2",
     "bcryptjs": "^2.4.3",
+    "bootstrap": "^5.3.6",
     "dotenv": "^16.4.7",
     "fs": "^0.0.1-security",
     "html2pdf.js": "^0.10.3",
